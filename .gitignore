@@ -1,0 +1,7 @@
+*.cy.c
+*.o
+*.pyc
+*.pyo
+*.pyd
+*.kpf
+.komodotools/*
