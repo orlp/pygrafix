@@ -5,3 +5,4 @@
 *.pyd
 *.kpf
 .komodotools/*
+dist/*

@@ -1,0 +1,14 @@
+# these constants are taken from GL/glfw.h
+
+MOUSE1 = 0
+MOUSE2 = 1
+MOUSE3 = 2
+MOUSE4 = 3
+MOUSE5 = 4
+MOUSE6 = 5
+MOUSE7 = 6
+MOUSE8 = 7
+
+LEFT = MOUSE1
+MIDDLE = MOUSE2
+RIGHT = MOUSE3
