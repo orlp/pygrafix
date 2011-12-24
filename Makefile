@@ -54,7 +54,7 @@ dist: all
 	copy pygrafix\gl\texture.pyd dist\pygrafix\gl
 
 test:
-	python examples/test.py
+	python test.py
 
 clean:
 	del /S /Q *.o > nul

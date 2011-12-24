@@ -1,6 +1,7 @@
 from pygrafix.c_headers.soil cimport *
 
-from pygrafix.image import Image, FormatNotSupportedError
+from pygrafix.image import Image
+from pygrafix.image.codecs import ImageDecodeException
 
 class SoilImageDecoder:
     formats = ["bmp", "tga", "dds", "png", "jpg"]
@@ -15,7 +16,7 @@ class SoilImageDecoder:
 
     def decode(self, file, format, request_channels):
         if not format in self.formats:
-            raise FormatNotSupportedError
+            raise ImageDecodeException
 
         cdef int img_width, img_height, orig_channels
         cdef char *c_img_data
@@ -26,7 +27,7 @@ class SoilImageDecoder:
         c_img_data = <char*> SOIL_load_image_from_memory(file_data, len(file_data), &img_width, &img_height, &orig_channels, self._channel_constants[request_channels])
 
         if c_img_data == NULL:
-            raise Exception("Error while loading image data: " + str(SOIL_last_result()))
+            raise ImageDecodeException("Error while loading image data: " + str(SOIL_last_result()))
 
         if request_channels == None:
             request_channels = orig_channels

@@ -46,7 +46,7 @@ window.set_mouse_scroll_callback(on_scroll)
 window.set_key_press_callback(on_key_press)
 
 # load resources
-img = pygrafix.image.load("sprite.tga")
+img = pygrafix.image.load("test.tga")
 sprite = pygrafix.sprite.Sprite(img)
 sprite.anchor_x = sprite.texture.width / 2
 sprite.anchor_y = sprite.texture.height / 2
