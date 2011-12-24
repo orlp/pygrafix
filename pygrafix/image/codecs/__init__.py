@@ -15,3 +15,10 @@ def get_codecs(format):
             available_codecs.append(codec)
 
     return available_codecs
+
+def load_default_codecs():
+    try:
+        from pygrafix.image.codecs import soil
+        add_codec(soil.SoilImageDecoder())
+    except ImportError:
+        pass
