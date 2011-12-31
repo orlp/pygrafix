@@ -1,6 +1,5 @@
-from pygrafix.c_headers.glfw cimport *
 from pygrafix.c_headers.gl cimport *
-from pygrafix import gl
+from pygrafix.c_headers.glfw cimport *
 
 # glfw init func, call this before anything
 if not glfwInit():
@@ -12,7 +11,7 @@ cdef object _window_opened = None
 # callback handlers, these can't be part of Window thanks to issues with "self"
 # the close callback handler - default behaviour is to close the application
 # this ONLY gets called when the user closes the application NOT when window.close() gets called
-cdef int __stdcall _close_callback_handler():
+cdef int _close_callback_handler():
     global _window_opened
     self = _window_opened
 
@@ -34,7 +33,7 @@ cdef int __stdcall _close_callback_handler():
 
 # this gets called when the window needs to be redrawn due to effects from the outside
 # (for example when a previously hidden part of the window has become visible)
-cdef void __stdcall _refresh_callback_handler():
+cdef void _refresh_callback_handler():
     try:
         self = _window_opened
         self._refresh_callback(self)
@@ -43,7 +42,7 @@ cdef void __stdcall _refresh_callback_handler():
 
 # this gets called when the user resizes the window
 # (NOT when window.set_size() is called)
-cdef void __stdcall _resize_callback_handler(int width, int height):
+cdef void _resize_callback_handler(int width, int height):
     try:
         self = _window_opened
         self._resize_callback(self, width, height)
@@ -51,7 +50,7 @@ cdef void __stdcall _resize_callback_handler(int width, int height):
         pass
 
 # this gets called when the user scrolls
-cdef void __stdcall _mouse_scroll_callback_handler(int pos):
+cdef void _mouse_scroll_callback_handler(int pos):
     try:
         self = _window_opened
 
@@ -63,7 +62,7 @@ cdef void __stdcall _mouse_scroll_callback_handler(int pos):
         pass
 
 # this gets called when the user moves his mouse
-cdef void __stdcall _mouse_move_callback_handler(int x, int y):
+cdef void _mouse_move_callback_handler(int x, int y):
     try:
         self = _window_opened
         self._mouse_move_callback(self, x, y)
@@ -71,7 +70,7 @@ cdef void __stdcall _mouse_move_callback_handler(int x, int y):
         pass
 
 # this gets called when the user presses or releases a key
-cdef void __stdcall _key_callback_handler(int key, int action):
+cdef void _key_callback_handler(int key, int action):
     try:
         self = _window_opened
 
@@ -83,7 +82,7 @@ cdef void __stdcall _key_callback_handler(int key, int action):
         pass
 
 # this gets called when the user inputs a printable character
-cdef void __stdcall _char_callback_handler(int char, int action):
+cdef void _char_callback_handler(int char, int action):
     try:
         self = _window_opened
 
@@ -103,7 +102,8 @@ cdef class Window:
     # these have to be public because non-member functions use them
     cdef public _closed
     cdef public int _mousewheel_pos
-    cdef public set _opengl_textures
+    cdef public dict _textures
+    cdef public set _gl_extensions
 
     cdef public object _close_callback
     cdef public object _resize_callback
@@ -116,7 +116,6 @@ cdef class Window:
 
     # read-only properties
     # they are read-only because changing them is either impossible or very expensive
-    cdef readonly object config
     cdef readonly bint fullscreen
 
     # special properties
@@ -173,9 +172,10 @@ cdef class Window:
         self._mouse_move_callback = None
 
         self._mousewheel_pos = 0
-        self._opengl_textures = set()
+        self._textures = {}
+        self._gl_extensions = set()
 
-    def __init__(self, int width = 0, int height = 0, title = "pygrafix window", bint fullscreen = False, bint resizable = False, bint vsync = True, int refresh_rate = 0, gl_config = gl.Config()):
+    def __init__(self, int width = 0, int height = 0, title = "pygrafix window", bint fullscreen = False, bint resizable = False, int refresh_rate = 0, bint vsync = True, bit_depth = (8, 8, 8, 8)):
         global _window_opened
 
         if _window_opened:
@@ -186,28 +186,26 @@ cdef class Window:
         else:
             mode = GLFW_WINDOW
 
-        rbits, gbits, bbits, abits = (gl_config.accum_size[i] for i in range(4))
-        glfwOpenWindowHint(GLFW_ACCUM_RED_BITS, rbits)
-        glfwOpenWindowHint(GLFW_ACCUM_GREEN_BITS, gbits)
-        glfwOpenWindowHint(GLFW_ACCUM_BLUE_BITS, bbits)
-        glfwOpenWindowHint(GLFW_ACCUM_ALPHA_BITS, abits)
-
-        glfwOpenWindowHint(GLFW_AUX_BUFFERS, gl_config.aux_buffers)
-        glfwOpenWindowHint(GLFW_FSAA_SAMPLES, gl_config.samples)
-        glfwOpenWindowHint(GLFW_WINDOW_NO_RESIZE, not resizable)
+        glfwOpenWindowHint(GLFW_ACCUM_RED_BITS, 0)
+        glfwOpenWindowHint(GLFW_ACCUM_GREEN_BITS, 0)
+        glfwOpenWindowHint(GLFW_ACCUM_BLUE_BITS, 0)
+        glfwOpenWindowHint(GLFW_ACCUM_ALPHA_BITS, 0)
+        glfwOpenWindowHint(GLFW_AUX_BUFFERS, 0)
+        glfwOpenWindowHint(GLFW_FSAA_SAMPLES, 0)
         glfwOpenWindowHint(GLFW_REFRESH_RATE, refresh_rate)
+        glfwOpenWindowHint(GLFW_WINDOW_NO_RESIZE, not resizable)
 
-        rbits, gbits, bbits, abits = (gl_config.buffer_size[i] for i in range(4))
-        ret = glfwOpenWindow(width, height, rbits, gbits, bbits, abits, gl_config.depth_size, gl_config.stencil_size, mode)
+        rbits, gbits, bbits, abits = bit_depth
+        ret = glfwOpenWindow(width, height, rbits, gbits, bbits, abits, 0, 0, mode)
 
         # check if the window really is open
         if not ret or not glfwGetWindowParam(GLFW_OPENED):
-            raise Exception("Failed to create GLFW window")
+            raise Exception("Failed to create window")
 
         _window_opened = self
 
         # set extra settings
-        glfwEnable(GLFW_AUTO_POLL_EVENTS)
+        glfwDisable(GLFW_AUTO_POLL_EVENTS)
 
         self.set_title(title)
         self.set_position(10, 10)
@@ -224,30 +222,35 @@ cdef class Window:
         glfwSetKeyCallback(&_key_callback_handler)
         glfwSetCharCallback(&_char_callback_handler)
 
+        # get supported gl extensions
+        cdef char *extensions
+        extensions = <char*> glGetString(GL_EXTENSIONS)
+        self._gl_extensions = set(str(extensions).split(" "))
+
         # set read-only properties
         self.fullscreen = fullscreen
 
-        # read back actual opengl config information
-        self.config = gl.Config()
+        # set up orthographic projection
+        width, height = self.get_size()
+        glViewport(0, 0, width, height)
 
-        rbits = glfwGetWindowParam(GLFW_RED_BITS)
-        gbits = glfwGetWindowParam(GLFW_GREEN_BITS)
-        bbits = glfwGetWindowParam(GLFW_BLUE_BITS)
-        abits = glfwGetWindowParam(GLFW_ALPHA_BITS)
-        accum_rbits = glfwGetWindowParam(GLFW_ACCUM_RED_BITS)
-        accum_gbits = glfwGetWindowParam(GLFW_ACCUM_GREEN_BITS)
-        accum_bbits = glfwGetWindowParam(GLFW_ACCUM_BLUE_BITS)
-        accum_abits = glfwGetWindowParam(GLFW_ACCUM_ALPHA_BITS)
+        glMatrixMode(GL_PROJECTION)
+        glPushMatrix()
+        glLoadIdentity()
 
-        self.config.buffer_size = (rbits, gbits, bbits, abits)
-        self.config.accum_size = (accum_rbits, accum_gbits, accum_bbits, accum_abits)
-        self.config.depth_size = glfwGetWindowParam(GLFW_DEPTH_BITS)
-        self.config.stencil_size = glfwGetWindowParam(GLFW_STENCIL_BITS)
-        self.config.samples = glfwGetWindowParam(GLFW_FSAA_SAMPLES)
-        self.config.aux_buffers = glfwGetWindowParam(GLFW_AUX_BUFFERS)
-        self.config.stereo = glfwGetWindowParam(GLFW_STEREO)
+        glOrtho(0.0, width, height, 0.0, 0.0, 1.0)
 
-        self.config._make_readonly()
+        glMatrixMode(GL_MODELVIEW)
+        glPushMatrix()
+        glLoadIdentity()
+
+        # displacement trick for exact pixelization
+        glTranslatef(0.375, 0.375, 0.0)
+
+        glDisable(GL_DEPTH_TEST)
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
 
     def __del__(self):
         self.close()
@@ -289,6 +292,32 @@ cdef class Window:
     def set_title(self, title):
         self._title = title
         glfwSetWindowTitle(title)
+
+    def toggle_fullscreen(self):
+        global _window_opened
+
+        # first read out information
+        fullscreen = not self.fullscreen
+        width = self.width
+        height = self.height
+        refresh_rate = self.refresh_rate
+        title = self.title
+        vsync = self.vsync
+        resizable = self.resizable
+
+        rbits = glfwGetWindowParam(GLFW_RED_BITS)
+        gbits = glfwGetWindowParam(GLFW_GREEN_BITS)
+        bbits = glfwGetWindowParam(GLFW_BLUE_BITS)
+        abits = glfwGetWindowParam(GLFW_ALPHA_BITS)
+        bit_depth = (rbits, gbits, bbits, abits)
+
+        # clean up and close
+        glfwCloseWindow()
+        self._textures = {} # we have lost all our uploaded textures, because the context got destroyed
+        _window_opened = None
+
+        # re-open window
+        self.__init__(width, height, title, fullscreen, resizable, refresh_rate, vsync, bit_depth)
 
     def minimize(self):
         glfwIconifyWindow()
@@ -378,13 +407,14 @@ cdef class Window:
     def set_text_callback(self, func):
         self._text_callback = func
 
-    def get_opengl_context_version(self):
-        major = glfwGetWindowParam(GLFW_OPENGL_VERSION_MAJOR)
-        minor = glfwGetWindowParam(GLFW_OPENGL_VERSION_MINOR)
+    #def get_opengl_context_version(self):
+    #    major = glfwGetWindowParam(GLFW_OPENGL_VERSION_MAJOR)
+    #    minor = glfwGetWindowParam(GLFW_OPENGL_VERSION_MINOR)
+    #
+    #    return major, minor
 
-        return major, minor
-
-    def clear(self):
+    def clear(self, red = 0.0, green = 0.0, blue = 0.0, alpha = 0.0):
+        glClearColor(red, green, blue, alpha)
         glClear(GL_COLOR_BUFFER_BIT)
 
 

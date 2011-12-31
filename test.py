@@ -1,74 +1,71 @@
+from __future__ import division
+
 import time
 
 import pygrafix
 from pygrafix.window import key
 
-# callbacks
-def on_resize(window, width, height):
-    draw_frame(window)
+# open window and set up
+window = pygrafix.window.Window(800, 600, title = "Test window", fullscreen = False, vsync = False)
 
-    window.flip()
+# load resources
+map = pygrafix.sprite.Sprite(pygrafix.image.load("map.png"))
+map.scale = 6
+map.y = -400
 
-def on_scroll(window, delta, pos):
-    global rotate
-    global scale
-
-    if window.is_key_pressed(key.LCTRL):
-        if delta > 0:
-            scale /= 1.1
-        else:
-            scale *= 1.1
-    else:
-        rotate -= 25 * delta
-
-def on_key_press(window, symbol):
-    print(key.symbol_string(symbol))
+map_x, map_y = 0.0, 0.0
 
 def draw_frame(window):
     window.clear()
 
-    mouse_x, mouse_y = window.get_mouse_position()
-    sprite.x = mouse_x
-    sprite.y = mouse_y
-    sprite.rotation = rotate
-    sprite.scale_x = scale
-    sprite.scale_y = scale
-
-    sprite.draw()
-
-# open window and set up
-window = pygrafix.window.Window(800, 600, title = "Test window", resizable = True)
-
-pygrafix.sprite.enable()
-
-window.set_resize_callback(on_resize)
-window.set_mouse_scroll_callback(on_scroll)
-window.set_key_press_callback(on_key_press)
-
-# load resources
-img = pygrafix.image.load("test.tga")
-sprite = pygrafix.sprite.Sprite(img)
-sprite.anchor_x = sprite.texture.width / 2
-sprite.anchor_y = sprite.texture.height / 2
-
-scale = 1
-rotate = 0
-frametime = 0.0
-
-while window.is_open():
-    start = time.clock()
-
-    window.wait_events()
-
-    if window.is_key_pressed(pygrafix.window.key.ESCAPE):
-        window.close()
-        break
-
-    if window.is_key_pressed(pygrafix.window.key.F):
-        print(1/frametime)
-
-    draw_frame(window)
+    map.x = map_x
+    map.y = map_y
+    map.draw()
 
     window.flip()
 
-    frametime = frametime * 0.99 + (time.clock() - start) * 0.01
+def main():
+    global map_x, map_y
+
+    old = time.clock()
+    accum = 0.0
+    frames = 0
+
+    while True:
+        # read new events
+        window.poll_events()
+
+        # check if we need to quit
+        if not window.is_open() or window.is_key_pressed(key.ESCAPE):
+            break
+
+        if window.is_key_pressed(key.F11):
+            window.toggle_fullscreen()
+
+        # time management
+        new = time.clock()
+        dt = new - old
+
+        accum += dt
+        frames += 1
+
+        if accum > 1:
+            print(frames // accum)
+            accum = 0.0
+            frames = 0
+
+        old = new
+
+        # animation
+        scrollspeed_x = 1200.0 * (window.get_mouse_position()[0] - window.width/2) / window.width
+        scrollspeed_y = 1200.0 * (window.get_mouse_position()[1] - window.height/2) / window.height
+
+        map_x += dt * -scrollspeed_x
+        map_y += dt * -scrollspeed_y
+
+        draw_frame(window)
+
+
+import cProfile
+
+cProfile.run("main()", sort="time")

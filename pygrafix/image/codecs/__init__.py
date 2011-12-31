@@ -2,23 +2,52 @@
 class ImageDecodeException(Exception):
     pass
 
-_codecs = []
+_decoders = []
+_encoders = []
 
-def add_codec(codec):
-    _codecs.append(codec)
+def add_decoder(decoder):
+    _decoders.append(decoder)
 
-def get_codecs(format):
-    available_codecs = []
+def add_encoder(encoder):
+    _encoders.append(encoder)
 
-    for codec in _codecs:
-        if format in codec.formats:
-            available_codecs.append(codec)
+def get_decoders(filename = None):
+    if not filename:
+        return _decoders
 
-    return available_codecs
+    available_decoders = []
 
-def load_default_codecs():
+    extension = filename.rsplit(".", 1)[-1].lower()
+
+    for decoder in _decoders:
+        if extension in decoder.get_extensions():
+            available_decoders.append(decoder)
+
+    return available_decoders
+
+def get_encoders(filename = None):
+    if not filename:
+        return _encoders
+
+    available_encoders = []
+
+    extension = filename.rsplit(".", 1)[-1].lower()
+
+    for encoder in _encoders:
+        if extension in encoder.get_extensions():
+            available_encoders.append(encoder)
+
+    return available_encoders
+
+def add_default_codecs():
     try:
-        from pygrafix.image.codecs import soil
-        add_codec(soil.SoilImageDecoder())
+        from pygrafix.image.codecs import stb_image
+        add_decoder(stb_image.StbImageDecoder())
+    except ImportError:
+        pass
+
+    try:
+        from pygrafix.image.codecs import pil
+        add_decoder(pil.PilImageDecoder())
     except ImportError:
         pass

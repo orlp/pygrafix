@@ -939,3 +939,8 @@ cdef extern from "gl_include.h":
     cdef void glDrawArrays(GLenum mode, GLint first, GLsizei count)
     cdef void glDrawElements(GLenum mode, GLsizei count, GLenum type, GLvoid *indices)
     cdef void glInterleavedArrays(GLenum format, GLsizei stride, GLvoid *pointer)
+
+    # finally some glext stuff we use - defining all of glext is an insane thing to do
+    cdef int GL_TEXTURE_RECTANGLE_EXT
+    cdef int GL_TEXTURE_RECTANGLE_NV
+    cdef int GL_TEXTURE_RECTANGLE_ARB

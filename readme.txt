@@ -1,5 +1,4 @@
-pygrafix is a Python/Cython OpenGL windowing toolkit with added features
-geared to 2D graphics and game development.
+pygrafix is a Python/Cython hardware-accelerated 2D graphics library.
 
 Why this project?
 There are two major game/graphics libraries for Python out there, Pygame
@@ -32,17 +31,14 @@ get wrapped with Cython. However, in the future probably more libraries are
 added.
 
 What are the core design goals?
- - Opening and using OpenGL windows and recieving input
- - Loading common image formats into OpenGL textures
- - Loading fonts in a format usable by OpenGL
+ - Opening and using a window and recieving input
+ - Loading common image formats into textures
+ - Loading and using fonts
  - A fast 2D sprite system supporting many transformations.
  - Providing clear, fast and object-oriented interfaces to all features
- - Compatability with PyOpenGL
 
 What other features might get added?
  - Loading and playing back sound
- - Exposing an interface to a small core subset of OpenGL
- - Loading OpenGL extensions
  - (2D) game specific high-performance modules (collision, vector, quaternion, etc)
  
 Disclaimer:

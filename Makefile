@@ -1,32 +1,28 @@
 CC=gcc
 CYTHON=python C:\Python27\Scripts\cython.py
 
-CFLAGS=-O3 -Wall -Wno-unused-but-set-variable -Wno-strict-aliasing -IC:\Python27\include -Ipygrafix/c_headers -DGLFW_DLL
+CFLAGS=-O3 -Wall -Wno-unused-but-set-variable -Wno-strict-aliasing -IC:\Python27\include -Ipygrafix/c_headers
 LIBS=-s -LC:\Python27\libs -lpython27
 
 .PHONY: all
 
-all: pygrafix/_pygrafix.pyd pygrafix/sprite.pyd pygrafix/window/_window.pyd pygrafix/gl/texture.pyd pygrafix/image/codecs/soil.pyd
-
-pygrafix/_pygrafix.pyd: pygrafix/_pygrafix.pyx pygrafix/c_headers/glfw.pxd pygrafix/c_headers/glfw_include.h
-	${CYTHON} -o pygrafix/_pygrafix.cy.c pygrafix/_pygrafix.pyx
-	${CC} ${CFLAGS} -c -o pygrafix/_pygrafix.cy.o pygrafix/_pygrafix.cy.c
-	${CC} ${CFLAGS} -shared -o pygrafix/_pygrafix.pyd pygrafix/_pygrafix.cy.o ${LIBS} -lglfwdll
+all: pygrafix/sprite.pyd pygrafix/window/_window.pyd pygrafix/image/codecs/stb_image.pyd pygrafix/image/_image.pyd
 
 pygrafix/window/_window.pyd: pygrafix/window/_window.pyx pygrafix/c_headers/glfw.pxd pygrafix/c_headers/glfw_include.h
 	${CYTHON} -o pygrafix/window/_window.cy.c pygrafix/window/_window.pyx
 	${CC} ${CFLAGS} -c -o pygrafix/window/_window.cy.o pygrafix/window/_window.cy.c
-	${CC} ${CFLAGS} -shared -o pygrafix/window/_window.pyd pygrafix/window/_window.cy.o ${LIBS} -lglfwdll -lopengl32
+	${CC} ${CFLAGS} -shared -o pygrafix/window/_window.pyd pygrafix/window/_window.cy.o ${LIBS} -lglfw -lopengl32
 
-pygrafix/gl/texture.pyd: pygrafix/gl/texture.pyx pygrafix/c_headers/gl.pxd pygrafix/c_headers/gl_include.h
-	${CYTHON} -o pygrafix/gl/texture.cy.c pygrafix/gl/texture.pyx
-	${CC} ${CFLAGS} -c -o pygrafix/gl/texture.cy.o pygrafix/gl/texture.cy.c
-	${CC} ${CFLAGS} -shared -o pygrafix/gl/texture.pyd pygrafix/gl/texture.cy.o ${LIBS} -lsoil -lopengl32
+pygrafix/image/_image.pyd: pygrafix/image/_image.pyx pygrafix/c_headers/soil.pxd pygrafix/c_headers/soil_include.h
+	${CYTHON} -o pygrafix/image/_image.cy.c pygrafix/image/_image.pyx
+	${CC} ${CFLAGS} -c -o pygrafix/image/_image.cy.o pygrafix/image/_image.cy.c
+	${CC} ${CFLAGS} -shared -o pygrafix/image/_image.pyd pygrafix/image/_image.cy.o ${LIBS} -lsoil -lopengl32
 
-pygrafix/image/codecs/soil.pyd: pygrafix/image/codecs/soil.pyx pygrafix/c_headers/soil.pxd pygrafix/c_headers/soil_include.h
-	${CYTHON} -o pygrafix/image/codecs/soil.cy.c pygrafix/image/codecs/soil.pyx
-	${CC} ${CFLAGS} -c -o pygrafix/image/codecs/soil.cy.o pygrafix/image/codecs/soil.cy.c
-	${CC} ${CFLAGS} -shared -o pygrafix/image/codecs/soil.pyd pygrafix/image/codecs/soil.cy.o ${LIBS} -lsoil -lopengl32
+pygrafix/image/codecs/stb_image.pyd: pygrafix/image/codecs/stb_image.pyx pygrafix/c_headers/stb_image.pxd pygrafix/c_headers/stb_image_include.h
+	${CC} ${CFLAGS} -c -o libs/stb_image/stb_image.o libs/stb_image/stb_image.c
+	${CYTHON} -o pygrafix/image/codecs/stb_image.cy.c pygrafix/image/codecs/stb_image.pyx
+	${CC} ${CFLAGS} -c -o pygrafix/image/codecs/stb_image.cy.o pygrafix/image/codecs/stb_image.cy.c
+	${CC} ${CFLAGS} -shared -o pygrafix/image/codecs/stb_image.pyd pygrafix/image/codecs/stb_image.cy.o libs/stb_image/stb_image.o ${LIBS}
 
 pygrafix/sprite.pyd: pygrafix/sprite.pyx pygrafix/c_headers/gl.pxd pygrafix/c_headers/gl_include.h
 	${CYTHON} -o pygrafix/sprite.cy.c pygrafix/sprite.pyx

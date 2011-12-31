@@ -181,15 +181,15 @@ cdef extern from "glfw_include.h":
     ctypedef void *GLFWmutex
     ctypedef void *GLFWcond
 
-    ctypedef void (__stdcall *GLFWwindowsizefun)(int, int)
-    ctypedef int (__stdcall *GLFWwindowclosefun)()
-    ctypedef void (__stdcall *GLFWwindowrefreshfun)()
-    ctypedef void (__stdcall *GLFWmousebuttonfun)(int, int)
-    ctypedef void (__stdcall *GLFWmouseposfun)(int, int)
-    ctypedef void (__stdcall *GLFWmousewheelfun)(int)
-    ctypedef void (__stdcall *GLFWkeyfun)(int, int)
-    ctypedef void (__stdcall *GLFWcharfun)(int, int)
-    ctypedef void (__stdcall *GLFWthreadfun)(void*)
+    ctypedef void (*GLFWwindowsizefun)(int, int)
+    ctypedef int (*GLFWwindowclosefun)()
+    ctypedef void (*GLFWwindowrefreshfun)()
+    ctypedef void (*GLFWmousebuttonfun)(int, int)
+    ctypedef void (*GLFWmouseposfun)(int, int)
+    ctypedef void (*GLFWmousewheelfun)(int)
+    ctypedef void (*GLFWkeyfun)(int, int)
+    ctypedef void (*GLFWcharfun)(int, int)
+    ctypedef void (*GLFWthreadfun)(void*)
 
     # glfw functions
     cdef int glfwInit()
