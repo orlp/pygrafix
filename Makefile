@@ -31,7 +31,25 @@ pygrafix/sprite.pyd: pygrafix/sprite.pyx pygrafix/c_headers/gl.pxd pygrafix/c_he
 
 dist: all
 	if EXIST dist (rmdir /S /Q dist > nul)
-	python create_exe.py
+	mkdir dist > nul
+	mkdir dist\pygrafix > nul
+	mkdir dist\pygrafix\window > nul
+	mkdir dist\pygrafix\image > nul
+	mkdir dist\pygrafix\image\codecs > nul
+
+	copy pygrafix\__init__.py dist\pygrafix > nul
+	copy pygrafix\sprite.pyd dist\pygrafix > nul
+	copy pygrafix\window\__init__.py dist\pygrafix\window > nul
+	copy pygrafix\image\__init__.py dist\pygrafix\image > nul
+	copy pygrafix\image\codecs\__init__.py dist\pygrafix\image\codecs > nul
+
+	copy pygrafix\window\key.py dist\pygrafix\window > nul
+	copy pygrafix\window\mouse.py dist\pygrafix\window > nul
+	copy pygrafix\window\_window.pyd dist\pygrafix\window > nul
+
+	copy pygrafix\image\_image.pyd dist\pygrafix\image > nul
+	copy pygrafix\image\codecs\stb_image.pyd dist\pygrafix\image\codecs > nul
+	copy pygrafix\image\codecs\pil.py dist\pygrafix\image\codecs > nul
 
 test:
 	python test.py
