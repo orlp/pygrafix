@@ -230,7 +230,19 @@ cdef class Window:
         # set read-only properties
         self.fullscreen = fullscreen
 
-        # set up orthographic projection
+        # set up 2d opengl
+        # disable depth testing and lighting, we won't use it
+        glDisable(GL_DEPTH_TEST)
+        glDisable(GL_LIGHTING)
+
+        # enable blending
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
+        # make sure glColor is used
+        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE)
+
+        # set up the correct viewport
         width, height = self.get_size()
         glViewport(0, 0, width, height)
 
@@ -246,10 +258,6 @@ cdef class Window:
 
         # displacement trick for exact pixelization
         glTranslatef(0.375, 0.375, 0.0)
-
-        glDisable(GL_DEPTH_TEST)
-        glEnable(GL_BLEND)
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
 
     def __del__(self):
@@ -416,6 +424,9 @@ cdef class Window:
     def clear(self, red = 0.0, green = 0.0, blue = 0.0, alpha = 0.0):
         glClearColor(red, green, blue, alpha)
         glClear(GL_COLOR_BUFFER_BIT)
+
+    def _glfinish(self):
+        glFinish()
 
 
 # and some free functions

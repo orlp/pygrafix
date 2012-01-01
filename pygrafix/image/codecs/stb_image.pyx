@@ -19,7 +19,7 @@ class StbImageDecoder:
         if c_img_data == NULL:
             raise ImageDecodeException("Error while loading image data: " + str(stbi_failure_reason()))
 
-        img_data = c_img_data[:img_width * img_height * orig_channels] # trick for cython to turn char* into str even with null
+        img_data = c_img_data[:img_width * img_height * orig_channels] # trick for cython to turn char* into bytes even with null
 
         stbi_image_free(c_img_data)
 
