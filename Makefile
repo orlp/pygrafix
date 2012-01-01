@@ -29,25 +29,9 @@ pygrafix/sprite.pyd: pygrafix/sprite.pyx pygrafix/c_headers/gl.pxd pygrafix/c_he
 	${CC} ${CFLAGS} -c -o pygrafix/sprite.cy.o pygrafix/sprite.cy.c
 	${CC} ${CFLAGS} -shared -o pygrafix/sprite.pyd pygrafix/sprite.cy.o ${LIBS} -lopengl32
 
-
 dist: all
 	if EXIST dist (rmdir /S /Q dist > nul)
-	mkdir dist > nul
-	mkdir dist\pygrafix > nul
-	mkdir dist\pygrafix\window > nul
-	mkdir dist\pygrafix\gl > nul
-
-	copy glfw.pyd dist > nul
-	copy pygrafix\__init__.py dist\pygrafix > nul
-	copy pygrafix\window\__init__.py dist\pygrafix\window > nul
-	copy pygrafix\gl\__init__.py dist\pygrafix\gl > nul
-
-	copy pygrafix\window\key.py dist\pygrafix\window > nul
-	copy pygrafix\window\mouse.py dist\pygrafix\window > nul
-	copy pygrafix\window\window.pyd dist\pygrafix\window > nul
-
-	copy pygrafix\gl\gl.pyd dist\pygrafix\gl
-	copy pygrafix\gl\texture.pyd dist\pygrafix\gl
+	python create_exe.py
 
 test:
 	python test.py
@@ -57,6 +41,7 @@ clean:
 	del /S /Q *.cy.c > nul
 	del /S /Q *.pyc > nul
 	del /S /Q *.pyo > nul
+	rmdir /S /Q build > nul
 
 purge: clean
 	del /S /Q *.pyd > nul

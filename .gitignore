@@ -6,3 +6,4 @@
 *.kpf
 .komodotools/*
 dist/*
+build/*
