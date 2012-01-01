@@ -26,9 +26,9 @@ likely be shipping binaries to your end users removing the need of the C
 compiler too).
 
 On what external libraries does pygrafix rely?
-pygrafix currently relies on GLFW and SOIL, two lightweight C libraries that
-get wrapped with Cython. However, in the future probably more libraries are
-added.
+pygrafix currently relies only on GLFW, a lightweight C library that get
+wrapped with Cython. pygrafix also uses stb_image for image loading, but
+stb_image is shipped with pygrafix as source.
 
 What are the core design goals?
  - Opening and using a window and recieving input

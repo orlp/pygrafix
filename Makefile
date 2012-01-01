@@ -13,10 +13,10 @@ pygrafix/window/_window.pyd: pygrafix/window/_window.pyx pygrafix/c_headers/glfw
 	${CC} ${CFLAGS} -c -o pygrafix/window/_window.cy.o pygrafix/window/_window.cy.c
 	${CC} ${CFLAGS} -shared -o pygrafix/window/_window.pyd pygrafix/window/_window.cy.o ${LIBS} -lglfw -lopengl32
 
-pygrafix/image/_image.pyd: pygrafix/image/_image.pyx pygrafix/c_headers/soil.pxd pygrafix/c_headers/soil_include.h
+pygrafix/image/_image.pyd: pygrafix/image/_image.pyx pygrafix/c_headers/stb_image.pxd pygrafix/c_headers/stb_image_include.h
 	${CYTHON} -o pygrafix/image/_image.cy.c pygrafix/image/_image.pyx
 	${CC} ${CFLAGS} -c -o pygrafix/image/_image.cy.o pygrafix/image/_image.cy.c
-	${CC} ${CFLAGS} -shared -o pygrafix/image/_image.pyd pygrafix/image/_image.cy.o ${LIBS} -lsoil -lopengl32
+	${CC} ${CFLAGS} -shared -o pygrafix/image/_image.pyd pygrafix/image/_image.cy.o ${LIBS} -lopengl32
 
 pygrafix/image/codecs/stb_image.pyd: pygrafix/image/codecs/stb_image.pyx pygrafix/c_headers/stb_image.pxd pygrafix/c_headers/stb_image_include.h
 	${CC} ${CFLAGS} -c -o libs/stb_image/stb_image.o libs/stb_image/stb_image.c
@@ -37,7 +37,7 @@ dist: all
 	mkdir dist\pygrafix\window > nul
 	mkdir dist\pygrafix\gl > nul
 
-	copy glfw.dll dist > nul
+	copy glfw.pyd dist > nul
 	copy pygrafix\__init__.py dist\pygrafix > nul
 	copy pygrafix\window\__init__.py dist\pygrafix\window > nul
 	copy pygrafix\gl\__init__.py dist\pygrafix\gl > nul

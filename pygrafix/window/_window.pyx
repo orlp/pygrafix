@@ -415,18 +415,9 @@ cdef class Window:
     def set_text_callback(self, func):
         self._text_callback = func
 
-    #def get_opengl_context_version(self):
-    #    major = glfwGetWindowParam(GLFW_OPENGL_VERSION_MAJOR)
-    #    minor = glfwGetWindowParam(GLFW_OPENGL_VERSION_MINOR)
-    #
-    #    return major, minor
-
     def clear(self, red = 0.0, green = 0.0, blue = 0.0, alpha = 0.0):
         glClearColor(red, green, blue, alpha)
         glClear(GL_COLOR_BUFFER_BIT)
-
-    def _glfinish(self):
-        glFinish()
 
 
 # and some free functions
