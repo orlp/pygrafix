@@ -1,4 +1,4 @@
-from pygrafix.c_headers.gl cimport *
+from pygrafix.c_headers.glew cimport *
 from pygrafix.c_headers.glfw cimport *
 
 # glfw init func, call this before anything
@@ -7,6 +7,12 @@ if not glfwInit():
 
 # tracking variable for singleton window (when GLFW will support multiple windows this will obviously disappear)
 cdef object _window_opened = None
+
+# every function in this list gets called when the window gets created
+cdef list _window_init_funcs = []
+
+def register_window_init_func(func):
+    _window_init_funcs.append(func)
 
 # callback handlers, these can't be part of Window thanks to issues with "self"
 # the close callback handler - default behaviour is to close the application
@@ -222,43 +228,11 @@ cdef class Window:
         glfwSetKeyCallback(&_key_callback_handler)
         glfwSetCharCallback(&_char_callback_handler)
 
-        # get supported gl extensions
-        cdef char *extensions
-        extensions = <char*> glGetString(GL_EXTENSIONS)
-        self._gl_extensions = set(str(extensions).split(" "))
-
         # set read-only properties
         self.fullscreen = fullscreen
 
-        # set up 2d opengl
-        # disable depth testing and lighting, we won't use it
-        glDisable(GL_DEPTH_TEST)
-        glDisable(GL_LIGHTING)
-
-        # enable blending
-        glEnable(GL_BLEND)
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-
-        # make sure glColor is used
-        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE)
-
-        # set up the correct viewport
-        width, height = self.get_size()
-        glViewport(0, 0, width, height)
-
-        glMatrixMode(GL_PROJECTION)
-        glPushMatrix()
-        glLoadIdentity()
-
-        glOrtho(0.0, width, height, 0.0, 0.0, 1.0)
-
-        glMatrixMode(GL_MODELVIEW)
-        glPushMatrix()
-        glLoadIdentity()
-
-        # displacement trick for exact pixelization
-        glTranslatef(0.375, 0.375, 0.0)
-
+        for func in _window_init_funcs:
+            func()
 
     def __del__(self):
         self.close()

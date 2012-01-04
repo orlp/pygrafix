@@ -1,4 +1,4 @@
-from pygrafix.c_headers.gl cimport *
+from pygrafix.c_headers.glew cimport *
 
 import math
 
@@ -6,15 +6,18 @@ import math
 from pygrafix import window
 from pygrafix.image import codecs
 
+def _init_context():
+    # init glew
+    ret = glewInit()
+    if ret != GLEW_OK:
+        raise Exception("Error while initializing GLEW")
+
+window.register_window_init_func(_init_context)
+
 def get_next_pot(n):
     return 2 ** (n - 1).bit_length()
 
 cdef class ImageData:
-    cdef public bytes data
-    cdef public int width
-    cdef public int height
-    cdef public str format
-
     def __init__(self, width, height, format, data):
         self.width = width
         self.height = height
@@ -25,12 +28,6 @@ cdef class ImageData:
 _texture_id = 0
 
 cdef class Texture:
-    cdef int _smoothing
-    cdef int _id
-    cdef ImageData imgdata
-    cdef readonly int width
-    cdef readonly int height
-
     property target:
         def __get__(self):
             cur_window = window.get_current_window()
@@ -63,30 +60,9 @@ cdef class Texture:
         self.imgdata = imgdata
         self.width = imgdata.width
         self.height = imgdata.height
-        self._smoothing = 0
 
     def copy(self):
-        new = Texture(self.imgdata)
-        new.set_scale_smoothing(self._smoothing)
-        return new
-
-    def set_scale_smoothing(self, int smoothing):
-        self._smoothing = smoothing
-
-        cur_window = window.get_current_window()
-
-        if cur_window and self._id in cur_window._textures:
-            if self._smoothing == 2:
-                flag = GL_NICEST
-            elif self._smoothing == 1:
-                flag = GL_LINEAR
-            else:
-                flag = GL_NEAREST
-
-            target, tex_id = cur_window._textures[self._id]
-            glBindTexture(target, tex_id)
-            glTexParameteri(target, GL_TEXTURE_MIN_FILTER, flag)
-            glTexParameteri(target, GL_TEXTURE_MAG_FILTER, flag)
+        return Texture(self.imgdata)
 
     def _upload_texture(self):
         cur_window = window.get_current_window()
@@ -105,30 +81,30 @@ cdef class Texture:
         else:
             raise Exception("Unknown data format")
 
-        # do we have rectangle support?
-        if "GL_ARB_texture_rectangle" in cur_window._gl_extensions:
+        if GLEW_ARB_texture_non_power_of_two:
+            target = GL_TEXTURE_2D
+        elif GLEW_ARB_texture_rectangle:
+            # do we have rectangle support?
             target = GL_TEXTURE_RECTANGLE_ARB
         else:
             target = GL_TEXTURE_2D
 
-            # if we don't use rectangle we must watch out for POT
-            if not "GL_ARB_texture_non_power_of_two" in cur_window._gl_extensions:
-                # if our width is not a power of two we must convert it
-                if self.imgdata.width != get_next_pot(self.imgdata.width):
-                    old_pitch = self.imgdata.width * len(self.imgdata.format)
-                    old_size = old_pitch * self.imgdata.height
+            # if our width is not a power of two we must convert it
+            if self.imgdata.width != get_next_pot(self.imgdata.width):
+                old_pitch = self.imgdata.width * len(self.imgdata.format)
+                old_size = old_pitch * self.imgdata.height
 
-                    transparent_columns = (b"\0" * len(self.imgdata.format)) * (get_next_pot(self.imgdata.width) - self.imgdata.width)
+                transparent_columns = (b"\0" * len(self.imgdata.format)) * (get_next_pot(self.imgdata.width) - self.imgdata.width)
 
-                    self.imgdata.data = b"".join(self.imgdata.data[i:i + old_pitch] + transparent_columns for i in range(0, old_size, old_pitch))
-                    self.imgdata.width = get_next_pot(self.imgdata.width)
+                self.imgdata.data = b"".join(self.imgdata.data[i:i + old_pitch] + transparent_columns for i in range(0, old_size, old_pitch))
+                self.imgdata.width = get_next_pot(self.imgdata.width)
 
-                # same goes for our height
-                if self.imgdata.height != get_next_pot(self.imgdata.height):
-                    transparent_row = (b"\0" * len(self.imgdata.format)) * self.imgdata.width
+            # same goes for our height
+            if self.imgdata.height != get_next_pot(self.imgdata.height):
+                transparent_row = (b"\0" * len(self.imgdata.format)) * self.imgdata.width
 
-                    self.imgdata.data += transparent_row * (get_next_pot(self.imgdata.height) - self.imgdata.height)
-                    self.imgdata.height = get_next_pot(self.imgdata.height)
+                self.imgdata.data += transparent_row * (get_next_pot(self.imgdata.height) - self.imgdata.height)
+                self.imgdata.height = get_next_pot(self.imgdata.height)
 
         # generate texture id
         cdef GLuint tex_id
@@ -141,9 +117,6 @@ cdef class Texture:
         glTexImage2D(target, 0, oglformat, self.imgdata.width, self.imgdata.height, 0, oglformat, GL_UNSIGNED_BYTE, <char *> self.imgdata.data)
 
         cur_window._textures[self._id] = (target, tex_id)
-
-        # update texture's settings
-        self.set_scale_smoothing(self._smoothing)
 
     def __del__(self):
         cdef GLuint tex_id
