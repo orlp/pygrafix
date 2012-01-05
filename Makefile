@@ -61,7 +61,6 @@ clean:
 	del /S /Q *.pyo > nul
 	if EXIST build (rmdir /S /Q dist > nul)
 
-
 purge: clean
 	del /S /Q *.pyd > nul
 	if EXIST dist (rmdir /S /Q dist > nul)

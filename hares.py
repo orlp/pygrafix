@@ -10,7 +10,7 @@ from pygrafix.window import key
 window = pygrafix.window.Window(800, 600, title = "Hares", fullscreen = False)
 
 # load resources
-maptex = pygrafix.image.load("zazaka.png")
+maptex = pygrafix.image.load("hare.png")
 
 # create sprite groups
 hares = pygrafix.sprite.SpriteGroup()
@@ -42,7 +42,7 @@ frames = 0
 def animate(dt):
     for hare in hares:
         hare.rotation += 10 * dt
-        hare.x += 10 * dt
+        #hare.x += 100 * dt
 
     #for hare in hares:
     #    hare.x += hare.dx * dt
