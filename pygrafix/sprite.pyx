@@ -85,7 +85,9 @@ cdef class Sprite:
     def draw(self, scale_smoothing = True):
         cdef GLfloat vertices[8]
         cdef GLshort texcoords[8]
+        cdef GLubyte colors[16]
 
+        self._update_colors(colors)
         self._update_texcoords(texcoords)
         self._update_vertices(vertices)
 
@@ -100,16 +102,17 @@ cdef class Sprite:
         glTexParameteri(self.texture.target, GL_TEXTURE_MIN_FILTER, filter)
         glTexParameteri(self.texture.target, GL_TEXTURE_MAG_FILTER, filter)
 
+        glEnableClientState(GL_COLOR_ARRAY)
         glEnableClientState(GL_VERTEX_ARRAY)
         glEnableClientState(GL_TEXTURE_COORD_ARRAY)
 
+        glColorPointer(4, GL_UNSIGNED_BYTE, 0, colors)
         glTexCoordPointer(2, GL_SHORT, 0, texcoords)
         glVertexPointer(2, GL_FLOAT, 0, vertices)
 
-        glColor4f(self.red, self.green, self.blue, self.alpha)
-
         glDrawArrays(GL_QUADS, 0, 4)
 
+        glEnableClientState(GL_COLOR_ARRAY)
         glDisableClientState(GL_VERTEX_ARRAY)
         glDisableClientState(GL_TEXTURE_COORD_ARRAY)
 

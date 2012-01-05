@@ -7,7 +7,7 @@ import pygrafix
 from pygrafix.window import key
 
 # open window and set up
-window = pygrafix.window.Window(800, 600, title = "Hares", fullscreen = False)
+window = pygrafix.window.Window(800, 600, title = "Hares", fullscreen = False, vsync = False)
 
 # load resources
 haretex = pygrafix.image.load("hare.png")
@@ -61,7 +61,7 @@ class Hare(object):
             self.dscale = -self.dscale
 
 # create hares
-hares = [Hare() for _ in range(1000)]
+hares = [Hare() for _ in range(100)]
 
 # time tracking and FPS
 now = time.clock()
