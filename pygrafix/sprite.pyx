@@ -176,6 +176,32 @@ cdef class Sprite:
             texcoords[6] = 1
             texcoords[7] = 0
 
+    cdef inline void _update_colors(self, GLubyte *colors):
+        cdef GLubyte r, g, b, a
+
+        r = int(self.red * 255)
+        g = int(self.green * 255)
+        b = int(self.blue * 255)
+        a = int(self.alpha * 255)
+
+        # we have to do this 4 times (once for each vertex). Loop unrolled for max perf
+        colors[0] = r
+        colors[1] = g
+        colors[2] = b
+        colors[3] = a
+        colors[4] = r
+        colors[5] = g
+        colors[6] = b
+        colors[7] = a
+        colors[8] = r
+        colors[9] = g
+        colors[10] = b
+        colors[11] = a
+        colors[12] = r
+        colors[13] = g
+        colors[14] = b
+        colors[15] = a
+
 cdef class SpriteGroup:
     cdef public list sprites
     cdef readonly double level
@@ -217,6 +243,7 @@ cdef class SpriteGroup:
 cdef _drawlist(list spritelist, image.Texture texture, bint scale_smoothing):
     cdef GLfloat *vertices
     cdef GLshort *texcoords
+    cdef GLubyte *colors
     cdef Sprite sprite
     cdef int index
 
@@ -234,25 +261,30 @@ cdef _drawlist(list spritelist, image.Texture texture, bint scale_smoothing):
     if GLEW_ARB_vertex_buffer_object:
         vertices = <GLfloat*> malloc(len(spritelist) * sizeof(GLfloat) * 8)
         texcoords = <GLshort*> malloc(len(spritelist) * sizeof(GLshort) * 8)
+        colors = <GLubyte*> malloc(len(spritelist) * sizeof(GLubyte) * 4 * 4)
 
         index = 0
 
-        for sprite in spritelist:
-            sprite._update_vertices(vertices + index)
-            sprite._update_texcoords(texcoords + index)
-            index += 8
+        for index, sprite in enumerate(spritelist):
+            sprite._update_colors(colors + 4*4*index)
+            sprite._update_vertices(vertices + 8*index)
+            sprite._update_texcoords(texcoords + 8*index)
 
+        glEnableClientState(GL_COLOR_ARRAY)
         glEnableClientState(GL_TEXTURE_COORD_ARRAY)
         glEnableClientState(GL_VERTEX_ARRAY)
 
+        glColorPointer(4, GL_UNSIGNED_BYTE, 0, colors)
         glTexCoordPointer(2, GL_SHORT, 0, texcoords)
         glVertexPointer(2, GL_FLOAT, 0, vertices)
 
         glDrawArrays(GL_QUADS, 0, 4 * len(spritelist))
 
+        glDisableClientState(GL_COLOR_ARRAY)
         glDisableClientState(GL_TEXTURE_COORD_ARRAY)
         glDisableClientState(GL_VERTEX_ARRAY)
 
+        free(colors)
         free(texcoords)
         free(vertices)
 

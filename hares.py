@@ -12,60 +12,63 @@ window = pygrafix.window.Window(800, 600, title = "Hares", fullscreen = False)
 # load resources
 haretex = pygrafix.image.load("hare.png")
 
-# create sprite groups
-hares = pygrafix.sprite.SpriteGroup()
+# create sprite group
+spritegroup = pygrafix.sprite.SpriteGroup()
+
+# hare object
+class Hare(object):
+    def __init__(self):
+        self.sprite = pygrafix.sprite.Sprite(haretex)
+
+        # sprite init
+        self.sprite.x = random.uniform(0, window.width)
+        self.sprite.y = random.uniform(0, window.height)
+        self.sprite.scale = random.uniform(0.5, 2)
+        self.sprite.rotation = random.uniform(0, 360)
+
+        self.sprite.red = random.random()
+        self.sprite.green = random.random()
+        self.sprite.blue = random.random()
+        self.sprite.alpha = random.random()
+
+        self.sprite.anchor_x = self.sprite.texture.width/2
+        self.sprite.anchor_y = self.sprite.texture.height/2
+
+        # animation config
+        self.dx = random.uniform(-200, 200)
+        self.dy = random.uniform(-200, 200)
+        self.drotation = random.uniform(0, 80)
+        self.dscale = random.uniform(-1.0, 1.0)
+
+        # register sprite in spritegroup
+        spritegroup.add_sprite(self.sprite)
+
+    def animate(self, dt):
+        self.sprite.x += self.dx * dt
+        self.sprite.y += self.dy * dt
+        self.sprite.rotation += self.drotation * dt
+        self.sprite.scale += self.dscale * dt
+
+        win_width, win_height = 800, 600
+
+        if (self.sprite.x < 0 and self.dx < 0) or (self.sprite.x > win_width and self.dx > 0):
+            self.dx = -self.dx
+
+        if (self.sprite.y < 0 and self.dy < 0) or (self.sprite.y > win_height and self.dy > 0):
+            self.dy = -self.dy
+
+        if (self.sprite.scale > 2 and self.dscale > 0) or (self.sprite.scale < 0.5 and self.dscale < 0):
+            self.dscale = -self.dscale
 
 # create hares
-for _ in range(500):
-    hare = pygrafix.sprite.Sprite(haretex)
-
-    hare.x = random.uniform(0, window.width)
-    hare.y = random.uniform(0, window.height)
-    hare.scale = random.uniform(0.5, 2)
-    hare.rotation = random.uniform(0, 360)
-
-    hare.red = random.random()
-    hare.green = random.random()
-    hare.blue = random.random()
-
-    hare.anchor_x = hare.texture.width/2
-    hare.anchor_y = hare.texture.height/2
-
-    hares.add_sprite(hare)
-
+hares = [Hare() for _ in range(1000)]
 
 # time tracking and FPS
 now = time.clock()
 accum = 0.0
-frames = 0
-
-hareanims = [[random.uniform(-200, 200), random.uniform(-200, 200), random.uniform(0, 80), random.uniform(-1.0, 1.0)] for _ in range(1000)]
-
-def animate(dt):
-    win_width, win_height = window.size
-
-    index = 0
-    for hare in hares:
-        hareanim = hareanims[index]
-
-        hare.x += hareanim[0] * dt
-        hare.y += hareanim[1] * dt
-        hare.rotation += hareanim[2] * dt
-        hare.scale += hareanim[3] * dt
-
-        if (hare.x < 0 and hareanim[0] < 0) or (hare.x > win_width and hareanim[0] > 0):
-            hareanim[0] = -hareanim[0]
-
-        if (hare.y < 0 and hareanim[1] < 0) or (hare.y > win_height and hareanim[1] > 0):
-            hareanim[1] = -hareanim[1]
-
-        if (hare.scale > 2 and hareanim[3] > 0) or (hare.scale < 0.5 and hareanim[3] < 0):
-            hareanim[3] = -hareanim[3]
-
-        index += 1
 
 def main():
-    global now, accum, frames, map_x, map_y
+    global now, accum, frames
 
     while True:
         # read new events
@@ -83,21 +86,20 @@ def main():
         dt = time.clock() - now
         now += dt
         accum += dt
-        frames += 1
 
         if accum >= 1:
-            print(frames)
+            print(window.get_fps())
             accum -= 1
-            frames = 0
 
-        animate(dt)
+        for hare in hares:
+            hare.animate(dt)
 
-        window.clear(0.0, 0.4, 0.0, 1.0)
-        hares.draw()
+        window.clear()
+        spritegroup.draw()
         window.flip()
 
         time.sleep(0.00001)
 
 
 import cProfile
-main()#cProfile.run("main()", sort = "time")
+cProfile.run("main()", sort = "time")

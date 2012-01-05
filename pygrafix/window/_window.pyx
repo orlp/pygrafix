@@ -3,6 +3,16 @@
 from pygrafix.c_headers.glew cimport *
 from pygrafix.c_headers.glfw cimport *
 
+import time
+import sys
+
+if sys.platform == "win32":
+    timefunc = time.clock
+else:
+    timefunc = time.time
+
+
+
 # glfw init func, call this before anything
 if not glfwInit():
     raise Exception("Couldn't initialize GLFW")
@@ -110,6 +120,8 @@ cdef class Window:
     cdef bint _key_repeat
     cdef bint _vsync
     cdef str _title
+    cdef double frametime
+    cdef double last_flip
 
     # these have to be public because non-member functions use them
     cdef public _closed
@@ -182,6 +194,8 @@ cdef class Window:
         self._mouse_move_callback = None
 
         self._mousewheel_pos = 0
+        self.frametime = 0.05
+        self.last_flip = timefunc()
 
     def __init__(self, int width = 0, int height = 0, title = "pygrafix window", bint fullscreen = False, bint resizable = False, int refresh_rate = 0, bint vsync = True, bit_depth = (8, 8, 8, 8)):
         global _window_opened
@@ -316,6 +330,12 @@ cdef class Window:
         return glfwGetWindowParam(GLFW_ICONIFIED)
 
     def flip(self):
+        now = timefunc()
+        dt = now - self.last_flip
+
+        self.frametime = self.frametime * 0.95 + 0.05 * dt
+        self.last_flip = now
+
         glfwSwapBuffers()
 
     def enable_mouse_cursor(self):
@@ -391,9 +411,15 @@ cdef class Window:
     def set_text_callback(self, func):
         self._text_callback = func
 
-    def clear(self, red = 0.0, green = 0.0, blue = 0.0, alpha = 0.0):
-        glClearColor(red, green, blue, alpha)
+    def clear(self, red = 0.0, green = 0.0, blue = 0.0):
+        glClearColor(red, green, blue, 0.0)
         glClear(GL_COLOR_BUFFER_BIT)
+
+    def get_fps(self):
+        if self.frametime == 0:
+            return 9999
+
+        return 1 / self.frametime
 
 
 # and some free functions
