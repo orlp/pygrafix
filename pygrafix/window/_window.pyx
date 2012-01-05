@@ -1,3 +1,5 @@
+# cython: profile=True
+
 from pygrafix.c_headers.glew cimport *
 from pygrafix.c_headers.glfw cimport *
 
@@ -8,11 +10,15 @@ if not glfwInit():
 # tracking variable for singleton window (when GLFW will support multiple windows this will obviously disappear)
 cdef object _window_opened = None
 
-# every function in this list gets called when the window gets created
-cdef list _window_init_funcs = []
+# every function in this list gets called when the context gets created/destroyed
+cdef list _context_init_funcs = []
+cdef list _context_destroy_funcs = []
 
-def register_window_init_func(func):
-    _window_init_funcs.append(func)
+def register_context_init_func(func):
+    _context_init_funcs.append(func)
+
+def register_context_destroy_func(func):
+    _context_destroy_funcs.append(func)
 
 # callback handlers, these can't be part of Window thanks to issues with "self"
 # the close callback handler - default behaviour is to close the application
@@ -108,8 +114,6 @@ cdef class Window:
     # these have to be public because non-member functions use them
     cdef public _closed
     cdef public int _mousewheel_pos
-    cdef public dict _textures
-    cdef public set _gl_extensions
 
     cdef public object _close_callback
     cdef public object _resize_callback
@@ -178,8 +182,6 @@ cdef class Window:
         self._mouse_move_callback = None
 
         self._mousewheel_pos = 0
-        self._textures = {}
-        self._gl_extensions = set()
 
     def __init__(self, int width = 0, int height = 0, title = "pygrafix window", bint fullscreen = False, bint resizable = False, int refresh_rate = 0, bint vsync = True, bit_depth = (8, 8, 8, 8)):
         global _window_opened
@@ -209,6 +211,7 @@ cdef class Window:
             raise Exception("Failed to create window")
 
         _window_opened = self
+        self._closed = False
 
         # set extra settings
         glfwDisable(GLFW_AUTO_POLL_EVENTS)
@@ -231,7 +234,7 @@ cdef class Window:
         # set read-only properties
         self.fullscreen = fullscreen
 
-        for func in _window_init_funcs:
+        for func in _context_init_funcs:
             func()
 
     def __del__(self):
@@ -241,6 +244,9 @@ cdef class Window:
         global _window_opened
 
         if not self._closed:
+            for func in _context_destroy_funcs:
+                func()
+
             glfwCloseWindow()
             self._closed = True
             _window_opened = None
@@ -276,8 +282,6 @@ cdef class Window:
         glfwSetWindowTitle(title)
 
     def toggle_fullscreen(self):
-        global _window_opened
-
         # first read out information
         fullscreen = not self.fullscreen
         width = self.width
@@ -294,9 +298,7 @@ cdef class Window:
         bit_depth = (rbits, gbits, bbits, abits)
 
         # clean up and close
-        glfwCloseWindow()
-        self._textures = {} # we have lost all our uploaded textures, because the context got destroyed
-        _window_opened = None
+        self.close()
 
         # re-open window
         self.__init__(width, height, title, fullscreen, resizable, refresh_rate, vsync, bit_depth)

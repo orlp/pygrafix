@@ -1,4 +1,3 @@
-
 from libc.stdlib cimport malloc, free
 from libc.math cimport sin, cos, M_PI
 
@@ -41,8 +40,6 @@ def _init_context():
 
     # displacement trick for exact pixelization
     glTranslatef(0.375, 0.375, 0.0)
-
-window.register_window_init_func(_init_context)
 
 cdef class Sprite:
     cdef public image.Texture texture
@@ -118,7 +115,7 @@ cdef class Sprite:
 
         glDisable(self.texture.target)
 
-    cdef void _update_vertices(self, GLfloat *vertices):
+    cdef inline void _update_vertices(self, GLfloat *vertices):
         cdef float x1, y1, x2, y2, x, y
 
         if self.rotation != 0.0:
@@ -157,7 +154,7 @@ cdef class Sprite:
             vertices[6] = int(x2)
             vertices[7] = int(y1)
 
-    cdef void _update_texcoords(self, GLshort *texcoords):
+    cdef inline void _update_texcoords(self, GLshort *texcoords):
         if self.texture.target == GL_TEXTURE_RECTANGLE_ARB:
             # (0, 0), (0, tex_height), (tex_width, tex_height), (tex_width, 0)
             texcoords[0] = 0
@@ -201,21 +198,27 @@ cdef class SpriteGroup:
         self.sprites.insert(index, sprite)
 
     def draw(self):
-        _drawlist(self.sprites, self.scale_smoothing)
+        if not self.sprites:
+            return
+
+        index = 0
+        while index < len(self.sprites):
+            start_index = index
+            texture = self.sprites[index].texture
+
+            while index < len(self.sprites) and self.sprites[index].texture == texture:
+                index += 1
+
+            _drawlist(self.sprites[start_index:index], texture, self.scale_smoothing)
 
     def __iter__(self):
         return iter(self.sprites)
 
-cdef _drawlist(list spritelist, bint scale_smoothing):
+cdef _drawlist(list spritelist, image.Texture texture, bint scale_smoothing):
     cdef GLfloat *vertices
     cdef GLshort *texcoords
     cdef Sprite sprite
     cdef int index
-
-    if not spritelist:
-        return
-
-    texture = spritelist[0].texture
 
     glEnable(texture.target)
     glBindTexture(texture.target, texture.id)
@@ -254,3 +257,6 @@ cdef _drawlist(list spritelist, bint scale_smoothing):
         free(vertices)
 
     glDisable(texture.target)
+
+
+window.register_context_init_func(_init_context)

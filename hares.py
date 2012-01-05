@@ -10,19 +10,18 @@ from pygrafix.window import key
 window = pygrafix.window.Window(800, 600, title = "Hares", fullscreen = False)
 
 # load resources
-maptex = pygrafix.image.load("hare.png")
+haretex = pygrafix.image.load("hare.png")
 
 # create sprite groups
 hares = pygrafix.sprite.SpriteGroup()
 
 # create hares
-for _ in range(300):
-    hare = pygrafix.sprite.Sprite(maptex)
+for _ in range(500):
+    hare = pygrafix.sprite.Sprite(haretex)
 
     hare.x = random.uniform(0, window.width)
     hare.y = random.uniform(0, window.height)
-    hare.scale_x = random.uniform(0.5, 2)
-    hare.scale_y = hare.scale_x
+    hare.scale = random.uniform(0.5, 2)
     hare.rotation = random.uniform(0, 360)
 
     hare.red = random.random()
@@ -34,32 +33,36 @@ for _ in range(300):
 
     hares.add_sprite(hare)
 
+
 # time tracking and FPS
 now = time.clock()
 accum = 0.0
 frames = 0
 
-def animate(dt):
-    for hare in hares:
-        hare.rotation += 10 * dt
-        #hare.x += 100 * dt
+hareanims = [[random.uniform(-200, 200), random.uniform(-200, 200), random.uniform(0, 80), random.uniform(-1.0, 1.0)] for _ in range(1000)]
 
-    #for hare in hares:
-    #    hare.x += hare.dx * dt
-    #    hare.y += hare.dy * dt
-    #
-    #    if hare.x > window.width or hare.x < 0:
-    #        hare.dx = -hare.dx
-    #
-    #    if hare.y > window.height or hare.y < 0:
-    #        hare.dy = -hare.dy
-    #
-    #    hare.scale_x += hare.dscale * dt
-    #    hare.scale_y += hare.dscale * dt
-    #    if hare.scale_x > 2 or hare.scale_x < 0.5:
-    #        hare.dscale = -hare.dscale
-    #
-    #    hare.rotation += hare.drotation * dt
+def animate(dt):
+    win_width, win_height = window.size
+
+    index = 0
+    for hare in hares:
+        hareanim = hareanims[index]
+
+        hare.x += hareanim[0] * dt
+        hare.y += hareanim[1] * dt
+        hare.rotation += hareanim[2] * dt
+        hare.scale += hareanim[3] * dt
+
+        if (hare.x < 0 and hareanim[0] < 0) or (hare.x > win_width and hareanim[0] > 0):
+            hareanim[0] = -hareanim[0]
+
+        if (hare.y < 0 and hareanim[1] < 0) or (hare.y > win_height and hareanim[1] > 0):
+            hareanim[1] = -hareanim[1]
+
+        if (hare.scale > 2 and hareanim[3] > 0) or (hare.scale < 0.5 and hareanim[3] < 0):
+            hareanim[3] = -hareanim[3]
+
+        index += 1
 
 def main():
     global now, accum, frames, map_x, map_y

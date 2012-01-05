@@ -1,3 +1,5 @@
+from pygrafix.c_headers.glew cimport GLuint, GLenum
+
 cdef class ImageData:
     cdef public bytes data
     cdef public int width
@@ -5,8 +7,11 @@ cdef class ImageData:
     cdef public str format
 
 cdef class Texture:
-    cdef int _smoothing
-    cdef int _id
+    # we want our texture to be weakref'able
+    cdef object __weakref__
+    
+    cdef GLuint id
+    cdef GLenum target
     cdef ImageData imgdata
     cdef readonly int width
     cdef readonly int height
