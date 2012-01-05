@@ -1,5 +1,3 @@
-# cython: profile=True
-
 from pygrafix.c_headers.glew cimport *
 from pygrafix.c_headers.glfw cimport *
 
@@ -33,7 +31,7 @@ def register_context_destroy_func(func):
 # callback handlers, these can't be part of Window thanks to issues with "self"
 # the close callback handler - default behaviour is to close the application
 # this ONLY gets called when the user closes the application NOT when window.close() gets called
-cdef int _close_callback_handler():
+cdef int _close_callback_handler() with gil:
     global _window_opened
     self = _window_opened
 
@@ -55,7 +53,7 @@ cdef int _close_callback_handler():
 
 # this gets called when the window needs to be redrawn due to effects from the outside
 # (for example when a previously hidden part of the window has become visible)
-cdef void _refresh_callback_handler():
+cdef void _refresh_callback_handler() with gil:
     try:
         self = _window_opened
         self._refresh_callback(self)
@@ -64,7 +62,7 @@ cdef void _refresh_callback_handler():
 
 # this gets called when the user resizes the window
 # (NOT when window.set_size() is called)
-cdef void _resize_callback_handler(int width, int height):
+cdef void _resize_callback_handler(int width, int height) with gil:
     try:
         self = _window_opened
         self._resize_callback(self, width, height)
@@ -72,7 +70,7 @@ cdef void _resize_callback_handler(int width, int height):
         pass
 
 # this gets called when the user scrolls
-cdef void _mouse_scroll_callback_handler(int pos):
+cdef void _mouse_scroll_callback_handler(int pos) with gil:
     try:
         self = _window_opened
 
@@ -84,7 +82,7 @@ cdef void _mouse_scroll_callback_handler(int pos):
         pass
 
 # this gets called when the user moves his mouse
-cdef void _mouse_move_callback_handler(int x, int y):
+cdef void _mouse_move_callback_handler(int x, int y) with gil:
     try:
         self = _window_opened
         self._mouse_move_callback(self, x, y)
@@ -92,7 +90,7 @@ cdef void _mouse_move_callback_handler(int x, int y):
         pass
 
 # this gets called when the user presses or releases a key
-cdef void _key_callback_handler(int key, int action):
+cdef void _key_callback_handler(int key, int action) with gil:
     try:
         self = _window_opened
 
@@ -104,7 +102,7 @@ cdef void _key_callback_handler(int key, int action):
         pass
 
 # this gets called when the user inputs a printable character
-cdef void _char_callback_handler(int char, int action):
+cdef void _char_callback_handler(int char, int action) with gil:
     try:
         self = _window_opened
 
@@ -178,12 +176,27 @@ cdef class Window:
         def __set__(self, bint vsync):
             self.set_vsync(vsync)
 
+    property mouse_cursor:
+        def __get__(self):
+            return self._mouse_cursor
+
+        def __set__(self, bint mouse_cursor):
+            self.set_mouse_cursor(mouse_cursor)
+
+    property key_repeat:
+        def __get__(self):
+            return self._key_repeat
+
+        def __set__(self, bint key_repeat):
+            self.set_key_repeat(key_repeat)
+
     property title:
         def __get__(self):
             return self._title
 
         def __set__(self, title):
             self.set_title(title)
+
 
     def __cinit__(self):
         self._closed = False
@@ -232,8 +245,8 @@ cdef class Window:
 
         self.set_title(title)
         self.set_position(10, 10)
-        self.enable_mouse_cursor()
-        self.enable_key_repeat()
+        self.set_mouse_cursor(True)
+        self.set_key_repeat(True)
         self.set_vsync(vsync)
 
         # set up event handlers
@@ -304,6 +317,8 @@ cdef class Window:
         title = self.title
         vsync = self.vsync
         resizable = self.resizable
+        mouse_cursor = self.mouse_cursor
+        key_repeat = self.key_repeat
 
         rbits = glfwGetWindowParam(GLFW_RED_BITS)
         gbits = glfwGetWindowParam(GLFW_GREEN_BITS)
@@ -316,6 +331,8 @@ cdef class Window:
 
         # re-open window
         self.__init__(width, height, title, fullscreen, resizable, refresh_rate, vsync, bit_depth)
+        self.set_mouse_cursor(mouse_cursor)
+        self.set_key_repeat(key_repeat)
 
     def minimize(self):
         glfwIconifyWindow()
@@ -338,27 +355,21 @@ cdef class Window:
 
         glfwSwapBuffers()
 
-    def enable_mouse_cursor(self):
-        glfwEnable(GLFW_MOUSE_CURSOR)
-        self._mouse_cursor = True
+    def set_mouse_cursor(self, bint mouse_cursor):
+        if mouse_cursor:
+            glfwEnable(GLFW_MOUSE_CURSOR)
+        else:
+            glfwDisable(GLFW_MOUSE_CURSOR)
 
-    def disable_mouse_cursor(self):
-        glfwDisable(GLFW_MOUSE_CURSOR)
-        self._mouse_cursor = False
+        self._mouse_cursor = mouse_cursor
 
-    def is_mouse_cursor_enabled(self):
-        return self._mouse_cursor
+    def set_key_repeat(self, bint key_repeat):
+        if key_repeat:
+            glfwEnable(GLFW_KEY_REPEAT)
+        else:
+            glfwDisable(GLFW_KEY_REPEAT)
 
-    def enable_key_repeat(self):
-        glfwEnable(GLFW_KEY_REPEAT)
-        self._key_repeat = True
-
-    def disable_key_repeat(self):
-        glfwDisable(GLFW_KEY_REPEAT)
-        self._key_repeat = False
-
-    def is_key_repeat_enabled(self):
-        return self._key_repeat
+        self._key_repeat = key_repeat
 
     def set_vsync(self, bint vsync):
         glfwSwapInterval(vsync)

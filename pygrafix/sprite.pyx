@@ -1,8 +1,8 @@
 from libc.stdlib cimport malloc, free
+from libc.string cimport memset, memcpy
 from libc.math cimport sin, cos, M_PI
 
 from pygrafix.c_headers.glew cimport *
-cimport pygrafix.image._image as image
 
 from pygrafix import window
 
@@ -42,19 +42,6 @@ def _init_context():
     glTranslatef(0.375, 0.375, 0.0)
 
 cdef class Sprite:
-    cdef public image.Texture texture
-    cdef public float x
-    cdef public float y
-    cdef public float anchor_x
-    cdef public float anchor_y
-    cdef public float scale_x
-    cdef public float scale_y
-    cdef public float rotation
-    cdef public float red
-    cdef public float green
-    cdef public float blue
-    cdef public float alpha
-
     property scale:
         def __get__(self):
             return self.scale_x
@@ -62,6 +49,21 @@ cdef class Sprite:
         def __set__(self, scale):
             self.scale_x = scale
             self.scale_y = scale
+
+    property position:
+        def __get__(self):
+            return (self.scale_x, self.scale_y)
+
+        def __set__(self, position):
+            self.scale_x, self.scale_y = position
+
+    property width:
+        def __get__(self):
+            return self.texture.width
+
+    property height:
+        def __get__(self):
+            return self.texture.height
 
     def __init__(self, texture):
         self.texture = texture
@@ -82,10 +84,14 @@ cdef class Sprite:
         self.blue = 1.0
         self.alpha = 1.0
 
+        self.visible = True
+
     def draw(self, scale_smoothing = True):
         cdef GLfloat vertices[8]
-        cdef GLshort texcoords[8]
+        cdef GLfloat texcoords[8]
         cdef GLubyte colors[16]
+
+        if not self.visible: return
 
         self._update_colors(colors)
         self._update_texcoords(texcoords)
@@ -107,7 +113,7 @@ cdef class Sprite:
         glEnableClientState(GL_TEXTURE_COORD_ARRAY)
 
         glColorPointer(4, GL_UNSIGNED_BYTE, 0, colors)
-        glTexCoordPointer(2, GL_SHORT, 0, texcoords)
+        glTexCoordPointer(2, GL_FLOAT, 0, texcoords)
         glVertexPointer(2, GL_FLOAT, 0, vertices)
 
         glDrawArrays(GL_QUADS, 0, 4)
@@ -120,6 +126,10 @@ cdef class Sprite:
 
     cdef inline void _update_vertices(self, GLfloat *vertices):
         cdef float x1, y1, x2, y2, x, y
+
+        if not self.visible:
+            memset(vertices, 0, 8 * sizeof(GLfloat))
+            return
 
         if self.rotation != 0.0:
             x1 = -self.anchor_x * self.scale_x
@@ -148,44 +158,33 @@ cdef class Sprite:
             x2 = x1 + self.texture.width * self.scale_x
             y2 = y1 + self.texture.height * self.scale_y
 
-            vertices[0] = int(x1)
-            vertices[1] = int(y1)
-            vertices[2] = int(x1)
-            vertices[3] = int(y2)
-            vertices[4] = int(x2)
-            vertices[5] = int(y2)
-            vertices[6] = int(x2)
-            vertices[7] = int(y1)
+            vertices[0] = x1
+            vertices[1] = y1
+            vertices[2] = x1
+            vertices[3] = y2
+            vertices[4] = x2
+            vertices[5] = y2
+            vertices[6] = x2
+            vertices[7] = y1
 
-    cdef inline void _update_texcoords(self, GLshort *texcoords):
-        if self.texture.target == GL_TEXTURE_RECTANGLE_ARB:
-            # (0, 0), (0, tex_height), (tex_width, tex_height), (tex_width, 0)
-            texcoords[0] = 0
-            texcoords[1] = 0
-            texcoords[2] = 0
-            texcoords[3] = self.texture.height
-            texcoords[4] = self.texture.width
-            texcoords[5] = self.texture.height
-            texcoords[6] = self.texture.width
-            texcoords[7] = 0
-        else:
-            # (0, 0), (0, 1), (1, 1), (1, 0)
-            texcoords[0] = 0
-            texcoords[1] = 0
-            texcoords[2] = 0
-            texcoords[3] = 1
-            texcoords[4] = 1
-            texcoords[5] = 1
-            texcoords[6] = 1
-            texcoords[7] = 0
+    cdef inline void _update_texcoords(self, GLfloat *texcoords):
+        if not self.visible:
+            memset(texcoords, 0, 8 * sizeof(GLfloat))
+            return
+
+        memcpy(texcoords, self.texture.texcoords, 8 * sizeof(GLfloat))
 
     cdef inline void _update_colors(self, GLubyte *colors):
         cdef GLubyte r, g, b, a
 
-        r = int(self.red * 255)
-        g = int(self.green * 255)
-        b = int(self.blue * 255)
-        a = int(self.alpha * 255)
+        if not self.visible:
+            memset(colors, 0, 16 * sizeof(GLubyte))
+            return
+
+        r = <GLubyte> (self.red * 255)
+        g = <GLubyte> (self.green * 255)
+        b = <GLubyte> (self.blue * 255)
+        a = <GLubyte> (self.alpha * 255)
 
         # we have to do this 4 times (once for each vertex). Loop unrolled for max perf
         colors[0] = r
@@ -207,11 +206,9 @@ cdef class Sprite:
 
 cdef class SpriteGroup:
     cdef public list sprites
-    cdef readonly double level
     cdef readonly bint scale_smoothing
 
-    def __init__(self, level = 0.0, scale_smoothing = True, batch = None):
-        self.level = level
+    def __init__(self, scale_smoothing = True, batch = None):
         self.scale_smoothing = scale_smoothing
         self.sprites = []
 
@@ -227,6 +224,9 @@ cdef class SpriteGroup:
         self.sprites.insert(index, sprite)
 
     def draw(self):
+        cdef Sprite sprite
+        cdef int i
+
         if not self.sprites:
             return
 
@@ -243,12 +243,17 @@ cdef class SpriteGroup:
     def __iter__(self):
         return iter(self.sprites)
 
-cdef _drawlist(list spritelist, image.Texture texture, bint scale_smoothing):
+cdef _drawlist(list spritelist, image.AbstractTexture texture, bint scale_smoothing):
     cdef GLfloat *vertices
-    cdef GLshort *texcoords
+    cdef GLfloat *texcoords
     cdef GLubyte *colors
     cdef Sprite sprite
+
+    #print(texture.id, texture.target, texture.width, texture.height)
+    #print([texture.texcoords[i] for i in range(8)])
+
     cdef int index
+    cdef size_t num_sprites = len(spritelist)
 
     glEnable(texture.target)
     glBindTexture(texture.target, texture.id)
@@ -262,13 +267,18 @@ cdef _drawlist(list spritelist, image.Texture texture, bint scale_smoothing):
     glTexParameteri(texture.target, GL_TEXTURE_MAG_FILTER, filter)
 
     if GLEW_ARB_vertex_buffer_object:
-        vertices = <GLfloat*> malloc(len(spritelist) * sizeof(GLfloat) * 8)
-        texcoords = <GLshort*> malloc(len(spritelist) * sizeof(GLshort) * 8)
-        colors = <GLubyte*> malloc(len(spritelist) * sizeof(GLubyte) * 4 * 4)
+        vertices = <GLfloat*> malloc(num_sprites * sizeof(GLfloat) * 8)
+        texcoords = <GLfloat*> malloc(num_sprites * sizeof(GLfloat) * 8)
+        colors = <GLubyte*> malloc(num_sprites * sizeof(GLubyte) * 4 * 4)
+
+        if vertices == NULL or texcoords == NULL or colors == NULL:
+            raise MemoryError("Allocating memory for spritedata failed")
 
         index = 0
 
-        for index, sprite in enumerate(spritelist):
+        for index in range(num_sprites):
+            sprite = spritelist[index]
+
             sprite._update_colors(colors + 4*4*index)
             sprite._update_vertices(vertices + 8*index)
             sprite._update_texcoords(texcoords + 8*index)
@@ -278,10 +288,10 @@ cdef _drawlist(list spritelist, image.Texture texture, bint scale_smoothing):
         glEnableClientState(GL_VERTEX_ARRAY)
 
         glColorPointer(4, GL_UNSIGNED_BYTE, 0, colors)
-        glTexCoordPointer(2, GL_SHORT, 0, texcoords)
+        glTexCoordPointer(2, GL_FLOAT, 0, texcoords)
         glVertexPointer(2, GL_FLOAT, 0, vertices)
 
-        glDrawArrays(GL_QUADS, 0, 4 * len(spritelist))
+        glDrawArrays(GL_QUADS, 0, 4 * num_sprites)
 
         glDisableClientState(GL_COLOR_ARRAY)
         glDisableClientState(GL_TEXTURE_COORD_ARRAY)

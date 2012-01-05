@@ -52,7 +52,7 @@ dist: all
 	copy pygrafix\image\codecs\pil.py dist\pygrafix\image\codecs > nul
 
 test:
-	python hares.py
+	python examples\snowflakes.py
 
 clean:
 	del /S /Q *.o > nul

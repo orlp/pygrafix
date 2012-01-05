@@ -49,7 +49,7 @@ class Hare(object):
         self.sprite.rotation += self.drotation * dt
         self.sprite.scale += self.dscale * dt
 
-        win_width, win_height = 800, 600
+        win_width, win_height = window.size
 
         if (self.sprite.x < 0 and self.dx < 0) or (self.sprite.x > win_width and self.dx > 0):
             self.dx = -self.dx
@@ -61,14 +61,12 @@ class Hare(object):
             self.dscale = -self.dscale
 
 # create hares
-hares = [Hare() for _ in range(100)]
-
-# time tracking and FPS
-now = time.clock()
-accum = 0.0
+hares = [Hare() for _ in range(1000)]
 
 def main():
-    global now, accum, frames
+    # time tracking and FPS
+    now = time.clock()
+    accum = 0.0
 
     while True:
         # read new events
@@ -97,8 +95,6 @@ def main():
         window.clear()
         spritegroup.draw()
         window.flip()
-
-        time.sleep(0.00001)
 
 
 import cProfile
