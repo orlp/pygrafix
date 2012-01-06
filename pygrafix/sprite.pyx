@@ -1,10 +1,59 @@
 from libc.stdlib cimport malloc, free
 from libc.string cimport memset, memcpy
 from libc.math cimport sin, cos, M_PI
-
 from pygrafix.c_headers.glew cimport *
 
 from pygrafix import window
+
+cdef GLuint shader_program
+cdef char *vertex_shader_src, *fragment_shader_src
+
+
+vertex_shader_src = """
+
+uniform float sprite_rotation;
+uniform float vec2 sprite_position;
+
+void main() {
+    glPosition = sprite_position
+}
+
+"""
+
+fragment_shader_src = """
+
+uniform float vec4 sprite_color
+
+void main() {
+	gl_FragColor = sprite_color;
+}
+
+"""
+
+
+def _load_shader():
+    cdef int shader_length
+    cdef GLuint vertex_shader, fragment_shader
+
+    vertex_shader = glCreateShader(GL_VERTEX_SHADER)
+    fragment_shader = glCreateShader(GL_FRAGMENT_SHADER)
+
+    shader_length = len(vertex_shader_src)
+    glShaderSource(vertex_shader, 1, <GLchar **> &vertex_shader_src, &shader_length)
+
+    shader_length = len(fragment_shader_src)
+    glShaderSource(fragment_shader, 1, <GLchar **> &fragment_shader_src, &shader_length)
+
+    glCompileShader(vertex_shader)
+    glCompileShader(fragment_shader)
+
+    shader_program = glCreateProgram()
+
+    glAttachShader(shader_program, vertex_shader)
+    glAttachShader(shader_program, fragment_shader)
+
+    glLinkProgram(shader_program)
+    glUseProgram(shader_program)
 
 def _init_context():
     # init glew
@@ -15,6 +64,7 @@ def _init_context():
     # set up 2d opengl
     # disable depth testing and lighting, we won't use it
     glDisable(GL_DEPTH_TEST)
+    glDepthMask(GL_FALSE)
     glDisable(GL_LIGHTING)
 
     # enable blending
@@ -40,6 +90,9 @@ def _init_context():
 
     # displacement trick for exact pixelization
     glTranslatef(0.375, 0.375, 0.0)
+
+    _load_shader()
+
 
 cdef class Sprite:
     property scale:
@@ -244,7 +297,7 @@ cdef class SpriteGroup:
         return iter(self.sprites)
 
 cdef _drawlist(list spritelist, image.AbstractTexture texture, bint scale_smoothing):
-    cdef GLfloat *vertices
+    cdef GLfloat vertices[8]
     cdef GLfloat *texcoords
     cdef GLubyte *colors
     cdef Sprite sprite
@@ -263,41 +316,21 @@ cdef _drawlist(list spritelist, image.AbstractTexture texture, bint scale_smooth
     glTexParameteri(texture.target, GL_TEXTURE_MIN_FILTER, filter)
     glTexParameteri(texture.target, GL_TEXTURE_MAG_FILTER, filter)
 
-    if GLEW_ARB_vertex_buffer_object:
-        vertices = <GLfloat*> malloc(num_sprites * sizeof(GLfloat) * 8)
-        texcoords = <GLfloat*> malloc(num_sprites * sizeof(GLfloat) * 8)
-        colors = <GLubyte*> malloc(num_sprites * sizeof(GLubyte) * 4 * 4)
+    glEnableClientState(GL_VERTEX_ARRAY)
+    glVertexPointer(2, GL_FLOAT, 0, vertices)
 
-        if vertices == NULL or texcoords == NULL or colors == NULL:
-            raise MemoryError("Allocating memory for spritedata failed")
+    for index in range(num_sprites):
+        sprite = spritelist[index]
 
-        index = 0
+        vertices[0]
 
-        for index in range(num_sprites):
-            sprite = spritelist[index]
+        glUniform1f(glGetUniformLocation(shader_program, "sprite_rotation"), sprite.rotation)
+        glUniform2f(glGetUniformLocation(shader_program, "sprite_position"), sprite.x, sprite.y)
+        glUniform4f(glGetUniformLocation(shader_program, "sprite_color"), sprite.red, sprite.green, sprite.blue, sprite.alpha)
 
-            sprite._update_colors(colors + 4*4*index)
-            sprite._update_vertices(vertices + 8*index)
-            sprite._update_texcoords(texcoords + 8*index)
+        glDrawArrays(GL_QUADS, 0, 4)
 
-        glEnableClientState(GL_COLOR_ARRAY)
-        glEnableClientState(GL_TEXTURE_COORD_ARRAY)
-        glEnableClientState(GL_VERTEX_ARRAY)
-
-        glColorPointer(4, GL_UNSIGNED_BYTE, 0, colors)
-        glTexCoordPointer(2, GL_FLOAT, 0, texcoords)
-        glVertexPointer(2, GL_FLOAT, 0, vertices)
-
-        glDrawArrays(GL_QUADS, 0, 4 * num_sprites)
-
-        glDisableClientState(GL_COLOR_ARRAY)
-        glDisableClientState(GL_TEXTURE_COORD_ARRAY)
-        glDisableClientState(GL_VERTEX_ARRAY)
-
-        free(colors)
-        free(texcoords)
-        free(vertices)
-
+    glDisableClientState(GL_VERTEX_ARRAY)
     glDisable(texture.target)
 
 
