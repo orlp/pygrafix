@@ -7123,7 +7123,7 @@ cdef extern from "glew_include.h":
     void glGetPixelMapusv(GLenum map, GLushort *values)
     void glGetPointerv(GLenum pname, GLvoid * *params)
     void glGetPolygonStipple(GLubyte *mask)
-    GLubyte glGetString(GLenum name)
+    GLubyte *glGetString(GLenum name)
     void glGetTexEnvfv(GLenum target, GLenum pname, GLfloat *params)
     void glGetTexEnviv(GLenum target, GLenum pname, GLint *params)
     void glGetTexGendv(GLenum coord, GLenum pname, GLdouble *params)

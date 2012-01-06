@@ -249,9 +249,6 @@ cdef _drawlist(list spritelist, image.AbstractTexture texture, bint scale_smooth
     cdef GLubyte *colors
     cdef Sprite sprite
 
-    #print(texture.id, texture.target, texture.width, texture.height)
-    #print([texture.texcoords[i] for i in range(8)])
-
     cdef int index
     cdef size_t num_sprites = len(spritelist)
 

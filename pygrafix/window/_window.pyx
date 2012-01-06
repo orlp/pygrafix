@@ -9,8 +9,6 @@ if sys.platform == "win32":
 else:
     timefunc = time.time
 
-
-
 # glfw init func, call this before anything
 if not glfwInit():
     raise Exception("Couldn't initialize GLFW")
@@ -423,12 +421,12 @@ cdef class Window:
         self._text_callback = func
 
     def clear(self, red = 0.0, green = 0.0, blue = 0.0):
-        glClearColor(red, green, blue, 0.0)
+        glClearColor(red, green, blue, 1.0)
         glClear(GL_COLOR_BUFFER_BIT)
 
     def get_fps(self):
         if self.frametime == 0:
-            return 9999
+            return 0.0
 
         return 1 / self.frametime
 

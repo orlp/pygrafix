@@ -7,7 +7,7 @@ import pygrafix
 from pygrafix.window import key
 
 # open window and set up
-window = pygrafix.window.Window(800, 600, title = "Hares", fullscreen = False, vsync = False)
+window = pygrafix.window.Window(800, 600, fullscreen = False, vsync = False)
 window.set_mouse_cursor(False)
 
 # load resources
@@ -91,7 +91,7 @@ def main():
         accum += dt
 
         if accum >= 1:
-            print(window.get_fps())
+            window.title = "Steam: %d frames per second @ %d x %d" % (int(window.get_fps()), window.width, window.height)
             accum -= 1
 
         for steampuff in steampuffs:

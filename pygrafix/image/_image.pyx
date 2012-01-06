@@ -25,19 +25,24 @@ def _init_context():
     for texture in _textures:
         texture()._upload_texture()
 
-    for textureregion in _texture_regions:
-        textureregion()._update_info()
+    for texture_region in _texture_regions:
+        texture_region()._update_info()
 
 def _destroy_context():
     cdef Texture texture
 
-    global _textures
+    global _textures, _texture_regions
 
     _textures = [ref for ref in _textures if ref()]
+    _texture_regions = [ref for ref in _texture_regions if ref()]
 
     for texture in _textures:
         glDeleteTextures(1, &texture.id)
         texture.id = 0
+
+    for texture_region in _texture_regions:
+        texture_region().target = 0
+        texture_region().id = 0
 
 
 def get_next_pot(n):
@@ -111,7 +116,7 @@ cdef class Texture(AbstractTexture):
             self.target = GL_TEXTURE_RECTANGLE_ARB
         else:
             self.target = GL_TEXTURE_2D
-
+    
             # if our width is not a power of two we must convert it
             if self.imgdata.width != get_next_pot(self.imgdata.width):
                 old_pitch = self.imgdata.width * len(self.imgdata.format)
@@ -187,7 +192,7 @@ cdef class TextureRegion(AbstractTexture):
 
     def _update_info(self):
         cdef GLfloat x, y, width, height
-        
+
         self.id = self.texture.id
         self.target = self.texture.target
 
@@ -213,8 +218,6 @@ cdef class TextureRegion(AbstractTexture):
             self.texcoords[5] = (y + height) / self.texture.imgdata.height
             self.texcoords[6] = (x + width) / self.texture.imgdata.width
             self.texcoords[7] = y / self.texture.imgdata.height
-
-        print([self.texcoords[i] for i in range(8)])
 
 def load(filename, file = None, decoder = None, ):
     if file == None:
