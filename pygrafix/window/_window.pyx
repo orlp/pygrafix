@@ -390,6 +390,9 @@ cdef class Window:
         else:
             return glfwGetKey(key) == GLFW_PRESS
 
+    def is_mouse_button_pressed(self, int button):
+        return glfwGetMouseButton(button) == GLFW_PRESS
+
     # callbacks
     def set_close_callback(self, func):
         self._close_callback = func
