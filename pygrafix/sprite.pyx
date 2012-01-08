@@ -300,5 +300,4 @@ cdef _drawlist(list spritelist, image.AbstractTexture texture, bint scale_smooth
 
     glDisable(texture.target)
 
-
 window.register_context_init_func(_init_context)

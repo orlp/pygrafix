@@ -12,7 +12,7 @@ window.set_mouse_cursor(False)
 
 # load resources
 particles = pygrafix.image.load("particles.png")
-steamparticle = particles.get_region(32, 64, 32, 32)
+steamparticle = particles.get_region(0, 96, 32, 32)
 
 # create sprite group
 spritegroup = pygrafix.sprite.SpriteGroup()
