@@ -7,10 +7,76 @@ cdef extern from "glfw_include.h":
     int GLFW_RELEASE
     int GLFW_PRESS
 
-    int GLFW_KEY_UNKNOWN
     int GLFW_KEY_SPACE
-    int GLFW_KEY_SPECIAL
-    int GLFW_KEY_ESC
+    int GLFW_KEY_APOSTROPHE
+    int GLFW_KEY_COMMA
+    int GLFW_KEY_MINUS
+    int GLFW_KEY_PERIOD
+    int GLFW_KEY_SLASH
+    int GLFW_KEY_0
+    int GLFW_KEY_1
+    int GLFW_KEY_2
+    int GLFW_KEY_3
+    int GLFW_KEY_4
+    int GLFW_KEY_5
+    int GLFW_KEY_6
+    int GLFW_KEY_7
+    int GLFW_KEY_8
+    int GLFW_KEY_9
+    int GLFW_KEY_SEMICOLON
+    int GLFW_KEY_EQUAL
+    int GLFW_KEY_A
+    int GLFW_KEY_B
+    int GLFW_KEY_C
+    int GLFW_KEY_D
+    int GLFW_KEY_E
+    int GLFW_KEY_F
+    int GLFW_KEY_G
+    int GLFW_KEY_H
+    int GLFW_KEY_I
+    int GLFW_KEY_J
+    int GLFW_KEY_K
+    int GLFW_KEY_L
+    int GLFW_KEY_M
+    int GLFW_KEY_N
+    int GLFW_KEY_O
+    int GLFW_KEY_P
+    int GLFW_KEY_Q
+    int GLFW_KEY_R
+    int GLFW_KEY_S
+    int GLFW_KEY_T
+    int GLFW_KEY_U
+    int GLFW_KEY_V
+    int GLFW_KEY_W
+    int GLFW_KEY_X
+    int GLFW_KEY_Y
+    int GLFW_KEY_Z
+    int GLFW_KEY_LEFT_BRACKET
+    int GLFW_KEY_BACKSLASH
+    int GLFW_KEY_RIGHT_BRACKET
+    int GLFW_KEY_GRAVE_ACCENT
+    int GLFW_KEY_WORLD_1
+    int GLFW_KEY_WORLD_2
+
+    int GLFW_KEY_ESCAPE
+    int GLFW_KEY_ENTER
+    int GLFW_KEY_TAB
+    int GLFW_KEY_BACKSPACE
+    int GLFW_KEY_INSERT
+    int GLFW_KEY_DELETE
+    int GLFW_KEY_RIGHT
+    int GLFW_KEY_LEFT
+    int GLFW_KEY_DOWN
+    int GLFW_KEY_UP
+    int GLFW_KEY_PAGE_UP
+    int GLFW_KEY_PAGE_DOWN
+    int GLFW_KEY_HOME
+    int GLFW_KEY_END
+    int GLFW_KEY_CAPS_LOCK
+    int GLFW_KEY_SCROLL_LOCK
+    int GLFW_KEY_NUM_LOCK
+    int GLFW_KEY_PRINT_SCREEN
+    int GLFW_KEY_PAUSE
     int GLFW_KEY_F1
     int GLFW_KEY_F2
     int GLFW_KEY_F3
@@ -36,25 +102,6 @@ cdef extern from "glfw_include.h":
     int GLFW_KEY_F23
     int GLFW_KEY_F24
     int GLFW_KEY_F25
-    int GLFW_KEY_UP
-    int GLFW_KEY_DOWN
-    int GLFW_KEY_LEFT
-    int GLFW_KEY_RIGHT
-    int GLFW_KEY_LSHIFT
-    int GLFW_KEY_RSHIFT
-    int GLFW_KEY_LCTRL
-    int GLFW_KEY_RCTRL
-    int GLFW_KEY_LALT
-    int GLFW_KEY_RALT
-    int GLFW_KEY_TAB
-    int GLFW_KEY_ENTER
-    int GLFW_KEY_BACKSPACE
-    int GLFW_KEY_INSERT
-    int GLFW_KEY_DEL
-    int GLFW_KEY_PAGEUP
-    int GLFW_KEY_PAGEDOWN
-    int GLFW_KEY_HOME
-    int GLFW_KEY_END
     int GLFW_KEY_KP_0
     int GLFW_KEY_KP_1
     int GLFW_KEY_KP_2
@@ -65,21 +112,38 @@ cdef extern from "glfw_include.h":
     int GLFW_KEY_KP_7
     int GLFW_KEY_KP_8
     int GLFW_KEY_KP_9
+    int GLFW_KEY_KP_DECIMAL
     int GLFW_KEY_KP_DIVIDE
     int GLFW_KEY_KP_MULTIPLY
     int GLFW_KEY_KP_SUBTRACT
     int GLFW_KEY_KP_ADD
-    int GLFW_KEY_KP_DECIMAL
-    int GLFW_KEY_KP_EQUAL
     int GLFW_KEY_KP_ENTER
-    int GLFW_KEY_KP_NUM_LOCK
-    int GLFW_KEY_CAPS_LOCK
-    int GLFW_KEY_SCROLL_LOCK
-    int GLFW_KEY_PAUSE
-    int GLFW_KEY_LSUPER
-    int GLFW_KEY_RSUPER
+    int GLFW_KEY_KP_EQUAL
+    int GLFW_KEY_LEFT_SHIFT
+    int GLFW_KEY_LEFT_CONTROL
+    int GLFW_KEY_LEFT_ALT
+    int GLFW_KEY_LEFT_SUPER
+    int GLFW_KEY_RIGHT_SHIFT
+    int GLFW_KEY_RIGHT_CONTROL
+    int GLFW_KEY_RIGHT_ALT
+    int GLFW_KEY_RIGHT_SUPER
     int GLFW_KEY_MENU
     int GLFW_KEY_LAST
+
+    #depreciated
+    int GLFW_KEY_ESC            #now GLFW_KEY_ESCAPE
+    int GLFW_KEY_DEL            #now GLFW_KEY_DELETE
+    int GLFW_KEY_PAGEUP         #now GLFW_KEY_PAGE_UP
+    int GLFW_KEY_PAGEDOWN       #now GLFW_KEY_PAGE_DOWN
+    int GLFW_KEY_KP_NUM_LOCK    #now GLFW_KEY_NUM_LOCK
+    int GLFW_KEY_LCTRL          #now GLFW_KEY_LEFT_CONTROL
+    int GLFW_KEY_LSHIFT         #now GLFW_KEY_LEFT_SHIFT
+    int GLFW_KEY_LALT           #now GLFW_KEY_LEFT_ALT
+    int GLFW_KEY_LSUPER         #now GLFW_KEY_LEFT_SUPER
+    int GLFW_KEY_RCTRL          #now GLFW_KEY_RIGHT_CONTROL
+    int GLFW_KEY_RSHIFT         #now GLFW_KEY_RIGHT_SHIFT
+    int GLFW_KEY_RALT           #now GLFW_KEY_RIGHT_ALT
+    int GLFW_KEY_RSUPER         #now GLFW_KEY_RIGHT_SUPER
 
     int GLFW_MOUSE_BUTTON_1
     int GLFW_MOUSE_BUTTON_2
@@ -113,20 +177,20 @@ cdef extern from "glfw_include.h":
     int GLFW_JOYSTICK_16
     int GLFW_JOYSTICK_LAST
 
-    int GLFW_WINDOW
+    int GLFW_WINDOWED
     int GLFW_FULLSCREEN
 
-    int GLFW_OPENED
     int GLFW_ACTIVE
     int GLFW_ICONIFIED
     int GLFW_ACCELERATED
+    int GLFW_OPENGL_REVISION
+
     int GLFW_RED_BITS
     int GLFW_GREEN_BITS
     int GLFW_BLUE_BITS
     int GLFW_ALPHA_BITS
     int GLFW_DEPTH_BITS
     int GLFW_STENCIL_BITS
-
     int GLFW_REFRESH_RATE
     int GLFW_ACCUM_RED_BITS
     int GLFW_ACCUM_GREEN_BITS
@@ -134,134 +198,153 @@ cdef extern from "glfw_include.h":
     int GLFW_ACCUM_ALPHA_BITS
     int GLFW_AUX_BUFFERS
     int GLFW_STEREO
-    int GLFW_WINDOW_NO_RESIZE
+    int GLFW_WINDOW_RESIZABLE
     int GLFW_FSAA_SAMPLES
     int GLFW_OPENGL_VERSION_MAJOR
     int GLFW_OPENGL_VERSION_MINOR
     int GLFW_OPENGL_FORWARD_COMPAT
     int GLFW_OPENGL_DEBUG_CONTEXT
     int GLFW_OPENGL_PROFILE
+    int GLFW_OPENGL_ROBUSTNESS
 
+    int GLFW_OPENGL_NO_ROBUSTNESS
+    int GLFW_OPENGL_NO_RESET_NOTIFICATION
+    int GLFW_OPENGL_LOSE_CONTEXT_ON_RESET
+
+    int GLFW_OPENGL_NO_PROFILE
     int GLFW_OPENGL_CORE_PROFILE
     int GLFW_OPENGL_COMPAT_PROFILE
+    int GLFW_OPENGL_ES2_PROFILE
 
-    int GLFW_MOUSE_CURSOR
     int GLFW_STICKY_KEYS
     int GLFW_STICKY_MOUSE_BUTTONS
     int GLFW_SYSTEM_KEYS
     int GLFW_KEY_REPEAT
-    int GLFW_AUTO_POLL_EVENTS
 
-    int GLFW_WAIT
-    int GLFW_NOWAIT
+    int GLFW_CURSOR_NORMAL
+    int GLFW_CURSOR_HIDDEN
+    int GLFW_CURSOR_CAPTURED
 
     int GLFW_PRESENT
     int GLFW_AXES
     int GLFW_BUTTONS
 
-    int GLFW_NO_RESCALE_BIT
-    int GLFW_ORIGIN_UL_BIT
-    int GLFW_BUILD_MIPMAPS_BIT
-    int GLFW_ALPHA_MAP_BIT
+    int GLFW_NO_ERROR
+    int GLFW_NOT_INITIALIZED
+    int GLFW_NO_CURRENT_WINDOW
+    int GLFW_INVALID_ENUM
+    int GLFW_INVALID_VALUE
+    int GLFW_OUT_OF_MEMORY
+    int GLFW_OPENGL_UNAVAILABLE
+    int GLFW_VERSION_UNAVAILABLE
+    int GLFW_PLATFORM_ERROR
+    int GLFW_WINDOW_NOT_ACTIVE
 
-    double GLFW_INFINITY
+    int GLFW_GAMMA_RAMP_SIZE
 
-    # glfw typedefs
+    # glfw ctypedefs
+    ctypedef void* GLFWwindow
+
+    ctypedef void (* GLFWerrorfun)(int, char*)
+    ctypedef void (* GLFWwindowsizefun)(GLFWwindow,int,int)
+    ctypedef int  (* GLFWwindowclosefun)(GLFWwindow)
+    ctypedef void (* GLFWwindowrefreshfun)(GLFWwindow)
+    ctypedef void (* GLFWwindowfocusfun)(GLFWwindow,int)
+    ctypedef void (* GLFWwindowiconifyfun)(GLFWwindow,int)
+    ctypedef void (* GLFWmousebuttonfun)(GLFWwindow,int,int)
+    ctypedef void (* GLFWmouseposfun)(GLFWwindow,int,int)
+    ctypedef void (* GLFWscrollfun)(GLFWwindow,int,int)
+    ctypedef void (* GLFWkeyfun)(GLFWwindow,int,int)
+    ctypedef void (* GLFWcharfun)(GLFWwindow,int)
+    ctypedef void* (* GLFWmallocfun)(size_t)
+    ctypedef void (* GLFWfreefun)(void*)
+
     ctypedef struct GLFWvidmode:
-        int Width, Height
-        int RedBits, BlueBits, GreenBits
+        int width
+        int height
+        int redBits
+        int blueBits
+        int greenBits
 
-    ctypedef struct GLFWimage:
-        int Width, Height
-        int Format
-        int BytesPerPixel
-        unsigned char *Data
+    ctypedef struct GLFWgammaramp:
+        unsigned short red
+        unsigned short green
+        unsigned short blue
 
-    ctypedef int GLFWthread
-    ctypedef void *GLFWmutex
-    ctypedef void *GLFWcond
+    ctypedef struct GLFWallocator:
+        GLFWmallocfun malloc
+        GLFWfreefun free
 
-    ctypedef void (*GLFWwindowsizefun)(int, int)
-    ctypedef int (*GLFWwindowclosefun)()
-    ctypedef void (*GLFWwindowrefreshfun)()
-    ctypedef void (*GLFWmousebuttonfun)(int, int)
-    ctypedef void (*GLFWmouseposfun)(int, int)
-    ctypedef void (*GLFWmousewheelfun)(int)
-    ctypedef void (*GLFWkeyfun)(int, int)
-    ctypedef void (*GLFWcharfun)(int, int)
-    ctypedef void (*GLFWthreadfun)(void*)
+    ctypedef struct GLFWthreadmodel:
+        int dummy
 
-    # glfw functions
-    cdef int glfwInit()
+    #glfw functions
+    cdef int  glfwInit()
+    cdef int  glfwInitWithModels(GLFWthreadmodel* threading, GLFWallocator* allocator)
     cdef void glfwTerminate()
-    cdef void glfwGetVersion(int *major, int *minor, int *rev)
+    cdef void glfwGetVersion(int* major, int* minor, int* rev)
+    cdef  char* glfwGetVersionString()
 
-    cdef int glfwOpenWindow(int width, int height, int redbits, int greenbits, int bluebits, int alphabits, int depthbits, int stencilbits, int mode)
+    cdef int glfwGetError()
+    cdef  char* glfwErrorString(int error)
+    cdef void glfwSetErrorCallback(GLFWerrorfun cbfun)
+
+    cdef int  glfwGetVideoModes(GLFWvidmode* list, int maxcount)
+    cdef void glfwGetDesktopMode(GLFWvidmode* mode)
+
+    cdef void glfwSetGamma(float gamma)
+    cdef void glfwGetGammaRamp(GLFWgammaramp* ramp)
+    cdef void glfwSetGammaRamp( GLFWgammaramp* ramp)
+
+    cdef GLFWwindow glfwOpenWindow(int width, int height, int mode,  char* title, GLFWwindow share)
     cdef void glfwOpenWindowHint(int target, int hint)
-    cdef void glfwCloseWindow()
-    cdef void glfwSetWindowTitle(char *title)
-    cdef void glfwGetWindowSize(int *width, int *height)
-    cdef void glfwSetWindowSize(int width, int height)
-    cdef void glfwSetWindowPos(int x, int y)
-    cdef void glfwIconifyWindow()
-    cdef void glfwRestoreWindow()
-    cdef void glfwSwapBuffers()
-    cdef void glfwSwapInterval(int interval)
-    cdef int glfwGetWindowParam(int param)
+    cdef int  glfwIsWindow(GLFWwindow window)
+    cdef void glfwCloseWindow(GLFWwindow window)
+    cdef void glfwSetWindowTitle(GLFWwindow,  char* title)
+    cdef void glfwGetWindowSize(GLFWwindow, int* width, int* height)
+    cdef void glfwSetWindowSize(GLFWwindow, int width, int height)
+    cdef void glfwGetWindowPos(GLFWwindow, int* xpos, int* ypos)
+    cdef void glfwSetWindowPos(GLFWwindow, int xpos, int ypos)
+    cdef void glfwIconifyWindow(GLFWwindow window)
+    cdef void glfwRestoreWindow(GLFWwindow window)
+    cdef int  glfwGetWindowParam(GLFWwindow window, int param)
+    cdef void glfwSetWindowUserPointer(GLFWwindow window, void* pointer)
+    cdef void* glfwGetWindowUserPointer(GLFWwindow window)
     cdef void glfwSetWindowSizeCallback(GLFWwindowsizefun cbfun)
     cdef void glfwSetWindowCloseCallback(GLFWwindowclosefun cbfun)
     cdef void glfwSetWindowRefreshCallback(GLFWwindowrefreshfun cbfun)
-
-    cdef int glfwGetVideoModes(GLFWvidmode *list, int maxcount)
-    cdef void glfwGetDesktopMode(GLFWvidmode *mode)
+    cdef void glfwSetWindowFocusCallback(GLFWwindowfocusfun cbfun)
+    cdef void glfwSetWindowIconifyCallback(GLFWwindowiconifyfun cbfun)
 
     cdef void glfwPollEvents()
     cdef void glfwWaitEvents()
-    cdef int glfwGetKey(int key)
-    cdef int glfwGetMouseButton(int button)
-    cdef void glfwGetMousePos(int *xpos, int *ypos)
-    cdef void glfwSetMousePos(int xpos, int ypos)
-    cdef int glfwGetMouseWheel()
-    cdef void glfwSetMouseWheel(int pos)
+
+    cdef int  glfwGetKey(GLFWwindow window, int key)
+    cdef int  glfwGetMouseButton(GLFWwindow window, int button)
+    cdef void glfwGetMousePos(GLFWwindow window, int* xpos, int* ypos)
+    cdef void glfwSetMousePos(GLFWwindow window, int xpos, int ypos)
+    cdef void glfwSetCursorMode(GLFWwindow window, int mode)
+    cdef void glfwGetScrollOffset(GLFWwindow window, int* xoffset, int* yoffset)
     cdef void glfwSetKeyCallback(GLFWkeyfun cbfun)
     cdef void glfwSetCharCallback(GLFWcharfun cbfun)
     cdef void glfwSetMouseButtonCallback(GLFWmousebuttonfun cbfun)
     cdef void glfwSetMousePosCallback(GLFWmouseposfun cbfun)
-    cdef void glfwSetMouseWheelCallback(GLFWmousewheelfun cbfun)
+    cdef void glfwSetScrollCallback(GLFWscrollfun cbfun)
 
     cdef int glfwGetJoystickParam(int joy, int param)
-    cdef int glfwGetJoystickPos(int joy, float *pos, int numaxes)
-    cdef int glfwGetJoystickButtons(int joy, unsigned char *buttons, int numbuttons)
+    cdef int glfwGetJoystickPos(int joy, float* pos, int numaxes)
+    cdef int glfwGetJoystickButtons(int joy, unsigned char* buttons, int numbuttons)
 
     cdef double glfwGetTime()
-    cdef void glfwSetTime(double time)
-    cdef void glfwSleep(double time)
+    cdef void   glfwSetTime(double time)
 
-    cdef int glfwExtensionSupported(char *extension)
-    cdef void* glfwGetProcAddress(char *procname)
-    cdef void glfwGetGLVersion(int *major, int *minor, int *rev)
+    cdef void glfwMakeContextCurrent(GLFWwindow window)
+    cdef GLFWwindow glfwGetCurrentContext()
+    cdef void  glfwSwapBuffers()
+    cdef void  glfwSwapInterval(int interval)
+    cdef int   glfwExtensionSupported( char* extension)
+    cdef void* glfwGetProcAddress( char* procname)
+    cdef void  glfwCopyContext(GLFWwindow src, GLFWwindow dst, unsigned long mask)
 
-    cdef GLFWthread glfwCreateThread(GLFWthreadfun fun, void *arg)
-    cdef void glfwDestroyThread(GLFWthread ID)
-    cdef int glfwWaitThread(GLFWthread ID, int waitmode)
-    cdef GLFWthread glfwGetThreadID()
-    cdef GLFWmutex glfwCreateMutex()
-    cdef void glfwDestroyMutex(GLFWmutex mutex)
-    cdef void glfwLockMutex(GLFWmutex mutex)
-    cdef void glfwUnlockMutex(GLFWmutex mutex)
-    cdef GLFWcond glfwCreateCond()
-    cdef void glfwDestroyCond(GLFWcond cond)
-    cdef void glfwWaitCond(GLFWcond cond, GLFWmutex mutex, double timeout)
-    cdef void glfwSignalCond(GLFWcond cond)
-    cdef void glfwBroadcastCond(GLFWcond cond)
-    cdef int glfwGetNumberOfProcessors()
-
-    cdef void glfwEnable(int token)
-    cdef void glfwDisable(int token)
-
-    cdef int glfwReadImage(char *name, GLFWimage *img, int flags)
-    cdef int glfwReadMemoryImage(void *data, long size, GLFWimage *img, int flags)
-    cdef void glfwFreeImage(GLFWimage *img)
-    cdef int glfwLoadTexture2D(char *name, int flags)
-    cdef int glfwLoadMemoryTexture2D(void *data, long size, int flags)
-    cdef int glfwLoadTextureImage2D(GLFWimage *img, int flags)
+    cdef void glfwEnable(GLFWwindow window, int token)
+    cdef void glfwDisable(GLFWwindow window, int token)
