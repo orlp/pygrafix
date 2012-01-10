@@ -52,10 +52,17 @@ cdef class Sprite:
 
     property position:
         def __get__(self):
-            return (self.scale_x, self.scale_y)
+            return (self.x, self.y)
 
         def __set__(self, position):
-            self.scale_x, self.scale_y = position
+            self.x, self.y = position
+
+    property anchor:
+        def __get__(self):
+            return (self.anchor_x, self.anchor_y)
+
+        def __set__(self, anchor):
+            self.anchor_x, self.anchor_y = anchor
 
     property width:
         def __get__(self):
@@ -78,6 +85,9 @@ cdef class Sprite:
 
         self.scale_x = 1.0
         self.scale_y = 1.0
+
+        self.flip_x = False
+        self.flip_y = False
 
         self.red = 1.0
         self.green = 1.0
@@ -126,6 +136,7 @@ cdef class Sprite:
 
     cdef inline void _update_vertices(self, GLfloat *vertices):
         cdef float x1, y1, x2, y2, x, y
+        cdef float tmp_x, tmp_y
 
         if not self.visible:
             memset(vertices, 0, 8 * sizeof(GLfloat))
@@ -143,6 +154,7 @@ cdef class Sprite:
             cr = cos(r)
             sr = sin(r)
 
+            # topleft, topright, bottomright, bottomleft
             vertices[0] = x1 * cr - y1 * sr + x
             vertices[1] = x1 * sr + y1 * cr + y
             vertices[2] = x1 * cr - y2 * sr + x
@@ -172,7 +184,40 @@ cdef class Sprite:
             memset(texcoords, 0, 8 * sizeof(GLfloat))
             return
 
-        memcpy(texcoords, self.texture.texcoords, 8 * sizeof(GLfloat))
+        # no flipping
+        if not self.flip_x and not self.flip_y:
+            memcpy(texcoords, self.texture.texcoords, 8 * sizeof(GLfloat))
+        # just flipped y, flip top(left/right) with bottom(left/right)
+        elif not self.flip_x:
+            texcoords[0] = self.texture.texcoords[2]
+            texcoords[1] = self.texture.texcoords[3]
+            texcoords[2] = self.texture.texcoords[0]
+            texcoords[3] = self.texture.texcoords[1]
+            texcoords[4] = self.texture.texcoords[6]
+            texcoords[5] = self.texture.texcoords[7]
+            texcoords[6] = self.texture.texcoords[4]
+            texcoords[7] = self.texture.texcoords[5]
+        # just flipped x, flip (top/bottom)left with (top/bottom)right
+        elif not self.flip_y:
+            texcoords[0] = self.texture.texcoords[6]
+            texcoords[1] = self.texture.texcoords[7]
+            texcoords[2] = self.texture.texcoords[4]
+            texcoords[3] = self.texture.texcoords[5]
+            texcoords[4] = self.texture.texcoords[2]
+            texcoords[5] = self.texture.texcoords[3]
+            texcoords[6] = self.texture.texcoords[0]
+            texcoords[7] = self.texture.texcoords[1]
+        # flipped both x and y, flip opposing corners
+        else:
+            texcoords[0] = self.texture.texcoords[4]
+            texcoords[1] = self.texture.texcoords[5]
+            texcoords[2] = self.texture.texcoords[6]
+            texcoords[3] = self.texture.texcoords[7]
+            texcoords[4] = self.texture.texcoords[0]
+            texcoords[5] = self.texture.texcoords[1]
+            texcoords[6] = self.texture.texcoords[2]
+            texcoords[7] = self.texture.texcoords[3]
+
 
     cdef inline void _update_colors(self, GLubyte *colors):
         cdef GLubyte r, g, b, a
@@ -238,12 +283,12 @@ cdef class SpriteGroup:
             while index < len(self.sprites) and self.sprites[index].texture == texture:
                 index += 1
 
-            _drawlist(self.sprites[start_index:index], texture, self.scale_smoothing)
+            _drawlist(self.sprites, start_index, index, texture, self.scale_smoothing)
 
     def __iter__(self):
         return iter(self.sprites)
 
-cdef _drawlist(list spritelist, image.AbstractTexture texture, bint scale_smoothing):
+cdef _drawlist(list spritelist, int start_index, int end_index, image.AbstractTexture texture, bint scale_smoothing):
     cdef GLfloat *vertices
     cdef GLfloat *texcoords
     cdef GLubyte *colors
@@ -273,7 +318,7 @@ cdef _drawlist(list spritelist, image.AbstractTexture texture, bint scale_smooth
 
         index = 0
 
-        for index in range(num_sprites):
+        for index in range(start_index, end_index):
             sprite = spritelist[index]
 
             sprite._update_colors(colors + 4*4*index)

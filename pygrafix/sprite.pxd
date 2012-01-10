@@ -15,6 +15,8 @@ cdef class Sprite:
     cdef public float blue
     cdef public float alpha
     cdef public bint visible
+    cdef public bint flip_x
+    cdef public bint flip_y
 
     cdef inline void _update_vertices(self, GLfloat *vertices)
     cdef inline void _update_texcoords(self, GLfloat *texcoords)
