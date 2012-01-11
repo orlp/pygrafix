@@ -117,6 +117,8 @@ cdef class Sprite:
 
         if blending == 'add':
             glBlendFunc(GL_SRC_ALPHA, GL_ONE)
+        elif blending == 'multiply':
+            glBlendFunc(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA);
         else:
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
@@ -314,6 +316,8 @@ cdef _drawlist(list spritelist, int start_index, int end_index, image.AbstractTe
 
     if blending == 'add':
         glBlendFunc(GL_SRC_ALPHA, GL_ONE)
+    elif blending == 'multiply':
+        glBlendFunc(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA);
     else:
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
