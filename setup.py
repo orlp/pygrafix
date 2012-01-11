@@ -37,6 +37,7 @@ setup(
 
         Extension("pygrafix.window._window", ["pygrafix/window/_window.pyx"],
             include_dirs = ["pygrafix/c_headers"],
+            library_dirs = ["libs/glfw/build/src"],
             libraries = ["glfw", opengl_lib],
             extra_compile_args = ["-Wno-unused-but-set-variable", "-Wno-strict-aliasing", "-O2"],
             extra_link_args = ["-s"],
@@ -67,7 +68,7 @@ if "clean" in sys.argv:
     for root, dirnames, filenames in os.walk("pygrafix"):
         for filename in fnmatch.filter(filenames, "*.cy.c"):
             matches.append(os.path.join(root, filename))
-    
+
     for filename in matches:
         print("removing '%s'" % filename)
         os.remove(filename)
