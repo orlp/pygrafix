@@ -96,7 +96,7 @@ cdef class Sprite:
 
         self.visible = True
 
-    def draw(self, scale_smoothing = True, blending = 'mix'):
+    def draw(self, scale_smoothing = True, blending = "mix"):
         cdef GLfloat vertices[8]
         cdef GLfloat texcoords[8]
         cdef GLubyte colors[16]
@@ -115,15 +115,20 @@ cdef class Sprite:
         else:
             filter = GL_NEAREST
 
-        if blending == 'add':
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE)
-        elif blending == 'multiply':
-            glBlendFunc(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA);
-        else:
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-
         glTexParameteri(self.texture.target, GL_TEXTURE_MIN_FILTER, filter)
         glTexParameteri(self.texture.target, GL_TEXTURE_MAG_FILTER, filter)
+
+        if blending == "add":
+            glEnable(GL_BLEND)
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE)
+        elif blending == "multiply":
+            glEnable(GL_BLEND)
+            glBlendFunc(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA);
+        elif blending == "mix":
+            glEnable(GL_BLEND)
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        else:
+            glDisable(GL_BLEND)
 
         glEnableClientState(GL_COLOR_ARRAY)
         glEnableClientState(GL_VERTEX_ARRAY)
@@ -261,7 +266,7 @@ cdef class SpriteGroup:
     cdef readonly bint scale_smoothing
     cdef readonly str blending
 
-    def __init__(self, scale_smoothing = True, blending = 'mix', batch = None):
+    def __init__(self, scale_smoothing = True, blending = "mix", batch = None):
         self.scale_smoothing = scale_smoothing
         self.blending = blending
         self.sprites = []
@@ -314,15 +319,20 @@ cdef _drawlist(list spritelist, int start_index, int end_index, image.AbstractTe
     else:
         filter = GL_NEAREST
 
-    if blending == 'add':
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE)
-    elif blending == 'multiply':
-        glBlendFunc(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA);
-    else:
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-
     glTexParameteri(texture.target, GL_TEXTURE_MIN_FILTER, filter)
     glTexParameteri(texture.target, GL_TEXTURE_MAG_FILTER, filter)
+
+    if blending == "add":
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE)
+    elif blending == "multiply":
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA);
+    elif blending == "mix":
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+    else:
+        glDisable(GL_BLEND)
 
     if GLEW_ARB_vertex_buffer_object:
         vertices = <GLfloat*> malloc(num_sprites * sizeof(GLfloat) * 8)

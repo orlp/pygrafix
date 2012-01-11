@@ -246,5 +246,4 @@ def load(filename, file = None, decoder = None, ):
 
     raise error
 
-
 window.register_context_init_func(_init_context)

@@ -14,7 +14,7 @@ window.set_mouse_cursor(False)
 particle = pygrafix.image.load("particles.png").get_region(0, 0, 32, 32)
 
 # create sprite group
-spritegroup = pygrafix.sprite.SpriteGroup(blending = 'add')
+spritegroup = pygrafix.sprite.SpriteGroup(blending = "multiply")
 
 class Flameparticle(object):
     def __init__(self):
@@ -22,8 +22,6 @@ class Flameparticle(object):
 
         # sprite init
         self.sprite.x, self.sprite.y = window.get_mouse_position()
-        self.sprite.scale = random.uniform(1.0, 1.2)
-        self.sprite.rotation = random.uniform(0, 360)
 
         self.sprite.red = random.uniform(0.7, 0.9)
         self.sprite.blue = random.uniform(0.0, 0.1)
@@ -33,12 +31,12 @@ class Flameparticle(object):
         self.sprite.anchor_x = self.sprite.texture.width/2
         self.sprite.anchor_y = self.sprite.texture.height/2
 
-        self.sprite.scale = random.uniform(0.1, 0.3)
+        self.sprite.scale = random.uniform(0.2, 1.9)
 
         self.life_time = random.random()
 
         # animation config
-        self.dx = random.uniform(-20, 20)
+        self.dx = random.uniform(-2, 2)
         self.dy = random.uniform(-90, 0)
         self.dalpha = -self.sprite.alpha / self.life_time
 
@@ -64,7 +62,7 @@ class Flameparticle(object):
 
 
 # create steampuffs
-flames = [Flameparticle() for _ in range(1000)]
+flames = [Flameparticle() for _ in range(100)]
 
 def main():
     # time tracking and FPS
@@ -96,7 +94,7 @@ def main():
         for flame in flames:
             flame.animate(dt)
 
-        window.clear()
+        window.clear(1.0, 1.0, 1.0)
         spritegroup.draw()
         window.flip()
 
