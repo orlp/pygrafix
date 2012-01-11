@@ -13,10 +13,6 @@ else:
 if not glfwInit():
     raise Exception("Couldn't initialize GLFW")
 
-# dict of all open windows
-cdef dict _windows_opened = {}
-cdef object _current_window = None
-
 # every function in this list gets called when the context gets created/destroyed
 cdef list _context_init_funcs = []
 cdef list _context_destroy_funcs = []
@@ -31,7 +27,7 @@ def register_context_destroy_func(func):
 # the close callback handler - default behaviour is to close the application
 # this ONLY gets called when the user closes the application NOT when window.close() gets called
 cdef int _close_callback_handler(GLFWwindow window) with gil:
-    self = _windows_opened[<long>window]
+    self = <Window> window
 
     cdef bint keep_open
     if self._close_callback:
@@ -39,21 +35,17 @@ cdef int _close_callback_handler(GLFWwindow window) with gil:
 
         self._closed = not keep_open
 
-        if self._closed:
-            del _windows_opened[<long>window]
-
         return GL_TRUE if self._closed else GL_FALSE
     else:
         self._closed = True
 
-        del _windows_opened[<long>window]
         return GL_TRUE
 
 # this gets called when the window needs to be redrawn due to effects from the outside
 # (for example when a previously hidden part of the window has become visible)
 cdef void _refresh_callback_handler(GLFWwindow window) with gil:
     try:
-        self = _windows_opened[<long>window]
+        self = <Window> window
         self._refresh_callback(self)
     except:
         pass
@@ -62,7 +54,7 @@ cdef void _refresh_callback_handler(GLFWwindow window) with gil:
 # (NOT when window.set_size() is called)
 cdef void _resize_callback_handler(GLFWwindow window, int width, int height) with gil:
     try:
-        self = _windows_opened[<long>window]
+        self = <Window> window
         self._resize_callback(self, width, height)
     except:
         pass
@@ -70,7 +62,7 @@ cdef void _resize_callback_handler(GLFWwindow window, int width, int height) wit
 # this gets called when the user scrolls
 cdef void _mouse_scroll_callback_handler(GLFWwindow window, int posx, int posy) with gil:
     try:
-        self = _windows_opened[<long>window]
+        self = <Window> window
 
         delta = posy - self._mousewheel_pos
         self._mousewheel_pos = posy
@@ -82,7 +74,7 @@ cdef void _mouse_scroll_callback_handler(GLFWwindow window, int posx, int posy) 
 # this gets called when the user moves his mouse
 cdef void _mouse_move_callback_handler(GLFWwindow window, int x, int y) with gil:
     try:
-        self = _windows_opened[<long>window]
+        self = <Window> window
         self._mouse_move_callback(self, x, y)
     except:
         pass
@@ -90,7 +82,7 @@ cdef void _mouse_move_callback_handler(GLFWwindow window, int x, int y) with gil
 # this gets called when the user presses or releases a key
 cdef void _key_callback_handler(GLFWwindow window, int key, int action) with gil:
     try:
-        self = _windows_opened[<long>window]
+        self = <Window> window
 
         if action == GLFW_PRESS:
             self._key_press_callback(self, key)
@@ -102,7 +94,7 @@ cdef void _key_callback_handler(GLFWwindow window, int key, int action) with gil
 # this gets called when the user inputs a printable character
 cdef void _char_callback_handler(GLFWwindow window, int char) with gil:
     try:
-        self = _windows_opened[<long>window]
+        self = <Window> window
 
         self._text_callback(self, chr(char))
     except:
@@ -209,6 +201,8 @@ cdef class Window:
         self.last_flip = timefunc()
 
     def __init__(self, int width = 0, int height = 0, title = "pygrafix window", bint fullscreen = False, bint resizable = False, int refresh_rate = 0, bint vsync = True, bit_depth = (8, 8, 8, 8)):
+        cdef GLFWvidmode display
+
         if fullscreen:
             mode = GLFW_FULLSCREEN
         else:
@@ -224,43 +218,46 @@ cdef class Window:
         glfwOpenWindowHint(GLFW_WINDOW_RESIZABLE, resizable)
 
         self._window = glfwOpenWindow(width, height, mode, title, NULL)
-        
+
         # check if the window really is open
         if not glfwIsWindow(self._window):
             raise Exception("Failed to create window")
-        
-        # set as current active
-        self.switch_to()
-        
-        # sdd to global window dict
-        _windows_opened[<long>self._window] = self
-        
-        self._closed = False
 
-        # center window
-        cdef GLFWvidmode display
-        glfwGetDesktopMode(&display)
-        self.set_position(display.width / 2 - width / 2, display.height / 2 - height / 2)
-        
-        # set extra settings
-        self.set_mouse_cursor(True)
-        self.set_key_repeat(True)
-        self.set_vsync(vsync)
+        # make link from GLFW window to Python Window
+        glfwSetWindowUserPointer(self._window, <void*> self)
 
-        # set up event handlers
-        glfwSetWindowCloseCallback(&_close_callback_handler)
-        glfwSetWindowSizeCallback(&_resize_callback_handler)
-        glfwSetWindowRefreshCallback(&_refresh_callback_handler)
-        glfwSetMousePosCallback(&_mouse_move_callback_handler)
-        glfwSetScrollCallback(&_mouse_scroll_callback_handler)
-        glfwSetKeyCallback(&_key_callback_handler)
-        glfwSetCharCallback(&_char_callback_handler)
+        ## set as current active
+        #self.switch_to()
+        #
+        #self._closed = False
+        #
+        ## center window if we're not fullscreen
+        #if not fullscreen:
+        #    glfwGetDesktopMode(&display)
+        #    self.set_position(display.width / 2 - width / 2, display.height / 2 - height / 2)
+        #
+        ## set extra settings
+        #self.set_mouse_cursor(True)
+        #self.set_key_repeat(True)
+        #self.set_vsync(vsync)
+        #
+        ## set up event handlers
+        #glfwSetWindowCloseCallback(&_close_callback_handler)
+        #glfwSetWindowSizeCallback(&_resize_callback_handler)
+        #glfwSetWindowRefreshCallback(&_refresh_callback_handler)
+        #glfwSetMousePosCallback(&_mouse_move_callback_handler)
+        #glfwSetScrollCallback(&_mouse_scroll_callback_handler)
+        #glfwSetKeyCallback(&_key_callback_handler)
+        #glfwSetCharCallback(&_char_callback_handler)
+        #
+        ## set read-only properties
+        #self.fullscreen = fullscreen
+        #
+        #for func in _context_init_funcs:
+        #    func()
 
-        # set read-only properties
-        self.fullscreen = fullscreen
-
-        for func in _context_init_funcs:
-            func()
+        while True:
+            glfwSwapBuffers()
 
     def __del__(self):
         self.close()
@@ -272,8 +269,6 @@ cdef class Window:
 
             glfwCloseWindow(self._window)
             self._closed = True
-            
-            del _windows_opened[<long>self._window]
 
     def is_open(self):
         return not self._closed
@@ -344,8 +339,6 @@ cdef class Window:
         return glfwGetWindowParam(self._window, GLFW_ICONIFIED)
 
     def switch_to(self):
-        global _current_window
-        _current_window = self
         glfwMakeContextCurrent(self._window)
 
     def flip(self):
@@ -439,4 +432,4 @@ cdef class Window:
 
 # and some free functions
 def get_current_window():
-    return _current_window
+    return <Window> glfwGetWindowUserPointer(glfwGetCurrentContext())
