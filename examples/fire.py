@@ -14,7 +14,7 @@ window.set_mouse_cursor(False)
 particle = pygrafix.image.load("particles.png").get_region(0, 0, 32, 32)
 
 # create sprite group
-spritegroup = pygrafix.sprite.SpriteGroup()
+spritegroup = pygrafix.sprite.SpriteGroup(blending = 'add')
 
 class Flameparticle(object):
     def __init__(self):
