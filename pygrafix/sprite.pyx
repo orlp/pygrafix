@@ -96,7 +96,7 @@ cdef class Sprite:
 
         self.visible = True
 
-    def draw(self, scale_smoothing = True):
+    def draw(self, scale_smoothing = True, blending = 'mix'):
         cdef GLfloat vertices[8]
         cdef GLfloat texcoords[8]
         cdef GLubyte colors[16]
@@ -110,10 +110,17 @@ cdef class Sprite:
         glEnable(self.texture.target)
         glBindTexture(self.texture.target, self.texture.id)
 
-        if scale_smoothing :
+        if scale_smoothing:
             filter = GL_LINEAR
         else:
             filter = GL_NEAREST
+
+        if blending == 'add':
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE)
+        elif blending == 'multiply':
+            glBlendFunc(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA);
+        else:
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
         glTexParameteri(self.texture.target, GL_TEXTURE_MIN_FILTER, filter)
         glTexParameteri(self.texture.target, GL_TEXTURE_MAG_FILTER, filter)
@@ -252,9 +259,11 @@ cdef class Sprite:
 cdef class SpriteGroup:
     cdef public list sprites
     cdef readonly bint scale_smoothing
+    cdef readonly str blending
 
-    def __init__(self, scale_smoothing = True, batch = None):
+    def __init__(self, scale_smoothing = True, blending = 'mix', batch = None):
         self.scale_smoothing = scale_smoothing
+        self.blending = blending
         self.sprites = []
 
         if batch:
@@ -283,12 +292,12 @@ cdef class SpriteGroup:
             while index < len(self.sprites) and self.sprites[index].texture == texture:
                 index += 1
 
-            _drawlist(self.sprites, start_index, index, texture, self.scale_smoothing)
+            _drawlist(self.sprites, start_index, index, texture, self.scale_smoothing, self.blending)
 
     def __iter__(self):
         return iter(self.sprites)
 
-cdef _drawlist(list spritelist, int start_index, int end_index, image.AbstractTexture texture, bint scale_smoothing):
+cdef _drawlist(list spritelist, int start_index, int end_index, image.AbstractTexture texture, bint scale_smoothing, str blending):
     cdef GLfloat *vertices
     cdef GLfloat *texcoords
     cdef GLubyte *colors
@@ -304,6 +313,13 @@ cdef _drawlist(list spritelist, int start_index, int end_index, image.AbstractTe
         filter = GL_LINEAR
     else:
         filter = GL_NEAREST
+
+    if blending == 'add':
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE)
+    elif blending == 'multiply':
+        glBlendFunc(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA);
+    else:
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
     glTexParameteri(texture.target, GL_TEXTURE_MIN_FILTER, filter)
     glTexParameteri(texture.target, GL_TEXTURE_MAG_FILTER, filter)
