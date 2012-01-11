@@ -13,8 +13,9 @@ else:
 if not glfwInit():
     raise Exception("Couldn't initialize GLFW")
 
-# tracking variable for singleton window (when GLFW will support multiple windows this will obviously disappear)
-cdef object _window_opened = None
+# dict of all open windows
+cdef dict _windows_opened = {}
+cdef object _current_window = None
 
 # every function in this list gets called when the context gets created/destroyed
 cdef list _context_init_funcs = []
@@ -29,9 +30,8 @@ def register_context_destroy_func(func):
 # callback handlers, these can't be part of Window thanks to issues with "self"
 # the close callback handler - default behaviour is to close the application
 # this ONLY gets called when the user closes the application NOT when window.close() gets called
-cdef int _close_callback_handler() with gil:
-    global _window_opened
-    self = _window_opened
+cdef int _close_callback_handler(GLFWwindow window) with gil:
+    self = _windows_opened[<long>window]
 
     cdef bint keep_open
     if self._close_callback:
@@ -39,58 +39,58 @@ cdef int _close_callback_handler() with gil:
 
         self._closed = not keep_open
 
-        if not keep_open:
-            _window_opened = None
+        if self._closed:
+            del _windows_opened[<long>window]
 
-        return not keep_open
+        return GL_TRUE if self._closed else GL_FALSE
     else:
         self._closed = True
-        _window_opened = None
 
-        return False
+        del _windows_opened[<long>window]
+        return GL_TRUE
 
 # this gets called when the window needs to be redrawn due to effects from the outside
 # (for example when a previously hidden part of the window has become visible)
-cdef void _refresh_callback_handler() with gil:
+cdef void _refresh_callback_handler(GLFWwindow window) with gil:
     try:
-        self = _window_opened
+        self = _windows_opened[<long>window]
         self._refresh_callback(self)
     except:
         pass
 
 # this gets called when the user resizes the window
 # (NOT when window.set_size() is called)
-cdef void _resize_callback_handler(int width, int height) with gil:
+cdef void _resize_callback_handler(GLFWwindow window, int width, int height) with gil:
     try:
-        self = _window_opened
+        self = _windows_opened[<long>window]
         self._resize_callback(self, width, height)
     except:
         pass
 
 # this gets called when the user scrolls
-cdef void _mouse_scroll_callback_handler(int pos) with gil:
+cdef void _mouse_scroll_callback_handler(GLFWwindow window, int posx, int posy) with gil:
     try:
-        self = _window_opened
+        self = _windows_opened[<long>window]
 
-        delta = pos - self._mousewheel_pos
-        self._mousewheel_pos = pos
+        delta = posy - self._mousewheel_pos
+        self._mousewheel_pos = posy
 
-        self._mouse_scroll_callback(self, delta, pos)
+        self._mouse_scroll_callback(self, delta, posy)
     except:
         pass
 
 # this gets called when the user moves his mouse
-cdef void _mouse_move_callback_handler(int x, int y) with gil:
+cdef void _mouse_move_callback_handler(GLFWwindow window, int x, int y) with gil:
     try:
-        self = _window_opened
+        self = _windows_opened[<long>window]
         self._mouse_move_callback(self, x, y)
     except:
         pass
 
 # this gets called when the user presses or releases a key
-cdef void _key_callback_handler(int key, int action) with gil:
+cdef void _key_callback_handler(GLFWwindow window, int key, int action) with gil:
     try:
-        self = _window_opened
+        self = _windows_opened[<long>window]
 
         if action == GLFW_PRESS:
             self._key_press_callback(self, key)
@@ -100,12 +100,11 @@ cdef void _key_callback_handler(int key, int action) with gil:
         pass
 
 # this gets called when the user inputs a printable character
-cdef void _char_callback_handler(int char, int action) with gil:
+cdef void _char_callback_handler(GLFWwindow window, int char) with gil:
     try:
-        self = _window_opened
+        self = _windows_opened[<long>window]
 
-        if action == GLFW_PRESS:
-            self._text_callback(self, chr(char))
+        self._text_callback(self, chr(char))
     except:
         pass
 
@@ -118,6 +117,7 @@ cdef class Window:
     cdef str _title
     cdef double frametime
     cdef double last_flip
+    cdef GLFWwindow _window
 
     # these have to be public because non-member functions use them
     cdef public _closed
@@ -161,11 +161,11 @@ cdef class Window:
 
     property resizable:
         def __get__(self):
-            return not glfwGetWindowParam(GLFW_WINDOW_NO_RESIZE)
+            return glfwGetWindowParam(self._window, GLFW_WINDOW_RESIZABLE)
 
     property refresh_rate:
         def __get__(self):
-            return glfwGetWindowParam(GLFW_REFRESH_RATE)
+            return glfwGetWindowParam(self._window, GLFW_REFRESH_RATE)
 
     property vsync:
         def __get__(self):
@@ -209,15 +209,10 @@ cdef class Window:
         self.last_flip = timefunc()
 
     def __init__(self, int width = 0, int height = 0, title = "pygrafix window", bint fullscreen = False, bint resizable = False, int refresh_rate = 0, bint vsync = True, bit_depth = (8, 8, 8, 8)):
-        global _window_opened
-
-        if _window_opened:
-            raise Exception("There may only be one open Window at one time.")
-
         if fullscreen:
             mode = GLFW_FULLSCREEN
         else:
-            mode = GLFW_WINDOW
+            mode = GLFW_WINDOWED
 
         glfwOpenWindowHint(GLFW_ACCUM_RED_BITS, 0)
         glfwOpenWindowHint(GLFW_ACCUM_GREEN_BITS, 0)
@@ -226,23 +221,28 @@ cdef class Window:
         glfwOpenWindowHint(GLFW_AUX_BUFFERS, 0)
         glfwOpenWindowHint(GLFW_FSAA_SAMPLES, 0)
         glfwOpenWindowHint(GLFW_REFRESH_RATE, refresh_rate)
-        glfwOpenWindowHint(GLFW_WINDOW_NO_RESIZE, not resizable)
+        glfwOpenWindowHint(GLFW_WINDOW_RESIZABLE, resizable)
 
-        rbits, gbits, bbits, abits = bit_depth
-        ret = glfwOpenWindow(width, height, rbits, gbits, bbits, abits, 0, 0, mode)
-
+        self._window = glfwOpenWindow(width, height, mode, title, NULL)
+        
         # check if the window really is open
-        if not ret or not glfwGetWindowParam(GLFW_OPENED):
+        if not glfwIsWindow(self._window):
             raise Exception("Failed to create window")
-
-        _window_opened = self
+        
+        # set as current active
+        self.switch_to()
+        
+        # sdd to global window dict
+        _windows_opened[<long>self._window] = self
+        
         self._closed = False
 
+        # center window
+        cdef GLFWvidmode display
+        glfwGetDesktopMode(&display)
+        self.set_position(display.width / 2 - width / 2, display.height / 2 - height / 2)
+        
         # set extra settings
-        glfwDisable(GLFW_AUTO_POLL_EVENTS)
-
-        self.set_title(title)
-        self.set_position(10, 10)
         self.set_mouse_cursor(True)
         self.set_key_repeat(True)
         self.set_vsync(vsync)
@@ -252,7 +252,7 @@ cdef class Window:
         glfwSetWindowSizeCallback(&_resize_callback_handler)
         glfwSetWindowRefreshCallback(&_refresh_callback_handler)
         glfwSetMousePosCallback(&_mouse_move_callback_handler)
-        glfwSetMouseWheelCallback(&_mouse_scroll_callback_handler)
+        glfwSetScrollCallback(&_mouse_scroll_callback_handler)
         glfwSetKeyCallback(&_key_callback_handler)
         glfwSetCharCallback(&_char_callback_handler)
 
@@ -266,15 +266,14 @@ cdef class Window:
         self.close()
 
     def close(self):
-        global _window_opened
-
         if not self._closed:
             for func in _context_destroy_funcs:
                 func()
 
-            glfwCloseWindow()
+            glfwCloseWindow(self._window)
             self._closed = True
-            _window_opened = None
+            
+            del _windows_opened[<long>self._window]
 
     def is_open(self):
         return not self._closed
@@ -286,16 +285,16 @@ cdef class Window:
         glfwWaitEvents()
 
     def set_position(self, int x, int y):
-        glfwSetWindowPos(x, y)
+        glfwSetWindowPos(self._window, x, y)
 
     def set_size(self, int w, int h):
-        glfwSetWindowSize(w, h)
+        glfwSetWindowSize(self._window, w, h)
 
     def get_size(self):
         cdef int w, h
 
         w, h = -1, -1
-        glfwGetWindowSize(&w, &h)
+        glfwGetWindowSize(self._window, &w, &h)
 
         if h == -1 or w == -1:
             raise Exception("Error while retrieving size.")
@@ -304,7 +303,7 @@ cdef class Window:
 
     def set_title(self, title):
         self._title = title
-        glfwSetWindowTitle(title)
+        glfwSetWindowTitle(self._window, title)
 
     def toggle_fullscreen(self):
         # first read out information
@@ -318,10 +317,10 @@ cdef class Window:
         mouse_cursor = self.mouse_cursor
         key_repeat = self.key_repeat
 
-        rbits = glfwGetWindowParam(GLFW_RED_BITS)
-        gbits = glfwGetWindowParam(GLFW_GREEN_BITS)
-        bbits = glfwGetWindowParam(GLFW_BLUE_BITS)
-        abits = glfwGetWindowParam(GLFW_ALPHA_BITS)
+        rbits = glfwGetWindowParam(self._window, GLFW_RED_BITS)
+        gbits = glfwGetWindowParam(self._window, GLFW_GREEN_BITS)
+        bbits = glfwGetWindowParam(self._window, GLFW_BLUE_BITS)
+        abits = glfwGetWindowParam(self._window, GLFW_ALPHA_BITS)
         bit_depth = (rbits, gbits, bbits, abits)
 
         # clean up and close
@@ -333,16 +332,21 @@ cdef class Window:
         self.set_key_repeat(key_repeat)
 
     def minimize(self):
-        glfwIconifyWindow()
+        glfwIconifyWindow(self._window)
 
     def restore(self):
-        glfwRestoreWindow()
+        glfwRestoreWindow(self._window)
 
     def has_focus(self):
-        return glfwGetWindowParam(GLFW_ACTIVE)
+        return glfwGetWindowParam(self._window, GLFW_ACTIVE)
 
     def is_minimized(self):
-        return glfwGetWindowParam(GLFW_ICONIFIED)
+        return glfwGetWindowParam(self._window, GLFW_ICONIFIED)
+
+    def switch_to(self):
+        global _current_window
+        _current_window = self
+        glfwMakeContextCurrent(self._window)
 
     def flip(self):
         now = timefunc()
@@ -355,17 +359,17 @@ cdef class Window:
 
     def set_mouse_cursor(self, bint mouse_cursor):
         if mouse_cursor:
-            glfwEnable(GLFW_MOUSE_CURSOR)
+            glfwSetCursorMode(self._window, GLFW_CURSOR_NORMAL)
         else:
-            glfwDisable(GLFW_MOUSE_CURSOR)
+            glfwDisable(self._window, GLFW_CURSOR_CAPTURED)
 
         self._mouse_cursor = mouse_cursor
 
     def set_key_repeat(self, bint key_repeat):
         if key_repeat:
-            glfwEnable(GLFW_KEY_REPEAT)
+            glfwEnable(self._window, GLFW_KEY_REPEAT)
         else:
-            glfwDisable(GLFW_KEY_REPEAT)
+            glfwDisable(self._window, GLFW_KEY_REPEAT)
 
         self._key_repeat = key_repeat
 
@@ -377,21 +381,21 @@ cdef class Window:
         cdef int x, y
         x, y = 0, 0
 
-        glfwGetMousePos(&x, &y)
+        glfwGetMousePos(self._window, &x, &y)
 
         return x, y
 
     def set_mouse_position(self, int x, int y):
-        glfwSetMousePos(x, y)
+        glfwSetMousePos(self._window, x, y)
 
     def is_key_pressed(self, key):
         if isinstance(key, str):
-            return glfwGetKey(str[0].upper().encode("latin_1")) == GLFW_PRESS
+            return glfwGetKey(self._window, str[0].upper().encode("latin_1")) == GLFW_PRESS
         else:
-            return glfwGetKey(key) == GLFW_PRESS
+            return glfwGetKey(self._window, key) == GLFW_PRESS
 
     def is_mouse_button_pressed(self, int button):
-        return glfwGetMouseButton(button) == GLFW_PRESS
+        return glfwGetMouseButton(self._window, button) == GLFW_PRESS
 
     # callbacks
     def set_close_callback(self, func):
@@ -407,7 +411,6 @@ cdef class Window:
         global _mousewheel_pos
 
         _mousewheel_pos = 0
-        glfwSetMouseWheel(0)
 
         self._mouse_scroll_callback = func
 
@@ -436,4 +439,4 @@ cdef class Window:
 
 # and some free functions
 def get_current_window():
-    return _window_opened
+    return _current_window
