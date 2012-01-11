@@ -69,8 +69,14 @@ cdef class Texture(AbstractTexture):
         self.tex_width = imgdata.width
         self.tex_height = imgdata.height
 
-        if window.get_current_window():
+        old_current_window = window.get_current_window()
+
+        for win in window.get_open_windows():
+            win.switch_to()
             self._upload_texture()
+
+        if old_current_window:
+            old_current_window.switch_to()
 
         _textures.append(weakref.ref(self))
 
@@ -93,11 +99,6 @@ cdef class Texture(AbstractTexture):
         return TextureRegion(self, x, y, width, height)
 
     def _upload_texture(self):
-        cur_window = window.get_current_window()
-
-        if not cur_window:
-            raise Exception("No opened window")
-
         if len(self.imgdata.format) == 4:
             oglformat = GL_RGBA
         elif len(self.imgdata.format) == 3:
@@ -116,7 +117,7 @@ cdef class Texture(AbstractTexture):
             self.target = GL_TEXTURE_RECTANGLE_ARB
         else:
             self.target = GL_TEXTURE_2D
-    
+
             # if our width is not a power of two we must convert it
             if self.imgdata.width != get_next_pot(self.imgdata.width):
                 old_pitch = self.imgdata.width * len(self.imgdata.format)
@@ -185,8 +186,14 @@ cdef class TextureRegion(AbstractTexture):
 
         self.region = (x, y, width, height)
 
-        if window.get_current_window():
+        old_current_window = window.get_current_window()
+
+        for win in window.get_open_windows():
+            win.switch_to()
             self._update_info()
+
+        if old_current_window:
+            old_current_window.switch_to()
 
         _texture_regions.append(weakref.ref(self))
 

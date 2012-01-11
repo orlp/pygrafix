@@ -3,6 +3,7 @@ from pygrafix.c_headers.glfw cimport *
 
 import time
 import sys
+import weakref
 
 if sys.platform == "win32":
     timefunc = time.clock
@@ -16,6 +17,9 @@ if not glfwInit():
 # every function in this list gets called when the context gets created/destroyed
 cdef list _context_init_funcs = []
 cdef list _context_destroy_funcs = []
+
+# we keep track of our opened windows (weakrefs)
+cdef list _opened_windows = []
 
 def register_context_init_func(func):
     _context_init_funcs.append(func)
@@ -102,6 +106,9 @@ cdef void _char_callback_handler(GLFWwindow window, int char) with gil:
 
 # the window class
 cdef class Window:
+    # we want our window to be weakref'able
+    cdef object __weakref__
+
     # internal, private variables
     cdef bint _mouse_cursor
     cdef bint _key_repeat
@@ -197,11 +204,13 @@ cdef class Window:
 
         self._title = ""
         self._mousewheel_pos = 0
-        self.frametime = 0.05
-        self.last_flip = timefunc()
+        self._frametime = 0.05
+        self._last_flip = timefunc()
 
-    def __init__(self, int width = 0, int height = 0, title = "pygrafix window", bint fullscreen = False, bint resizable = False, int refresh_rate = 0, bint vsync = True, bit_depth = (8, 8, 8, 8)):
+    def __init__(self, int width = 0, int height = 0, title = "pygrafix window", bint fullscreen = False, bint resizable = False, int refresh_rate = 0, bint vsync = True, bit_depth = (8, 8, 8, 0)):
         cdef GLFWvidmode display
+
+        global _opened_windows
 
         if fullscreen:
             mode = GLFW_FULLSCREEN
@@ -253,6 +262,10 @@ cdef class Window:
 
         # set read-only properties
         self.fullscreen = fullscreen
+
+        # remove dead references and add ourselves to the window list
+        _opened_windows = [win for win in _opened_windows if win()]
+        _opened_windows.append(weakref.ref(self))
 
         for func in _context_init_funcs:
             func()
@@ -320,7 +333,10 @@ cdef class Window:
         self.close()
 
         # re-open window
+
         self.__init__(width, height, title, fullscreen, resizable, refresh_rate, vsync, bit_depth)
+        self.width = width
+        self.height = height
         self.set_mouse_cursor(mouse_cursor)
         self.set_key_repeat(key_repeat)
 
@@ -341,7 +357,7 @@ cdef class Window:
 
     def flip(self):
         now = timefunc()
-        dt = now - self.last_flip
+        dt = now - self._last_flip
 
         self._frametime = self._frametime * 0.95 + 0.05 * dt
         self._last_flip = now
@@ -399,10 +415,7 @@ cdef class Window:
         self._refresh_callback = func
 
     def set_mouse_scroll_callback(self, func):
-        global _mousewheel_pos
-
-        _mousewheel_pos = 0
-
+        self._mousewheel_pos = 0
         self._mouse_scroll_callback = func
 
     def set_mouse_move_callback(self, func):
@@ -427,7 +440,20 @@ cdef class Window:
 
         return 1 / self._frametime
 
+    def __enter__(self):
+        self.switch_to()
+
 
 # and some free functions
 def get_current_window():
-    return <Window> glfwGetWindowUserPointer(glfwGetCurrentContext())
+    cdef GLFWwindow current_context
+
+    current_context = glfwGetCurrentContext()
+
+    if current_context == NULL:
+        return None
+
+    return <Window> glfwGetWindowUserPointer(current_context)
+
+def get_open_windows():
+    return [win() for win in _opened_windows if win()]

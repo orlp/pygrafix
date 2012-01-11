@@ -6,28 +6,26 @@ import random
 import pygrafix
 from pygrafix.window import key
 
+WINDOW_HEIGHT = 400
+WINDOW_WIDTH = 300
+
 # open window and set up
-windows = [pygrafix.window.Window(800, 600, title = "Snowflakes x3", fullscreen = False, vsync = False) for i in range(3)]
+windows = [pygrafix.window.Window(WINDOW_WIDTH, WINDOW_HEIGHT, title = "Snowflakes x3", fullscreen = False, vsync = False) for i in range(3)]
 
 # load resources
-for window in windows:
-    window.switch_to()
-    snowflaketex = pygrafix.image.load("snowflake.png")
+snowflaketex = pygrafix.image.load("snowflake.png")
 
 # create sprite group
-spritegroup = {}
-for window in windows:
-    spritegroup[id(window)] = pygrafix.sprite.SpriteGroup()
+spritegroup = pygrafix.sprite.SpriteGroup()
 
 # snowflake object
 class Snowflake(object):
-    def __init__(self, window):
-        self.window = window
+    def __init__(self):
         self.sprite = pygrafix.sprite.Sprite(snowflaketex)
 
         # sprite init
-        self.sprite.x = random.uniform(0, self.window.width)
-        self.sprite.y = random.uniform(0, self.window.height)
+        self.sprite.x = random.uniform(0, WINDOW_HEIGHT)
+        self.sprite.y = random.uniform(0, WINDOW_WIDTH)
         self.sprite.scale = random.uniform(0.5, 2)
         self.sprite.rotation = random.uniform(0, 360)
 
@@ -42,44 +40,42 @@ class Snowflake(object):
         self.drotation = random.uniform(0, 80)
 
         # register sprite in spritegroup
-        spritegroup[id(window)].add_sprite(self.sprite)
+        spritegroup.add_sprite(self.sprite)
 
     def animate(self, dt):
         self.sprite.x += self.dx * dt
         self.sprite.y += self.dy * dt
         self.sprite.rotation += self.drotation * dt
 
-        win_width, win_height = self.window.size
-
-        if (self.sprite.x < 0 and self.dx < 0) or (self.sprite.x > win_width and self.dx > 0):
+        if (self.sprite.x < 0 and self.dx < 0) or (self.sprite.x > WINDOW_WIDTH and self.dx > 0):
             self.dx = -self.dx
 
-        if self.sprite.y > win_height + self.sprite.height:
+        if self.sprite.y > WINDOW_HEIGHT + self.sprite.height:
             self.sprite.y = -self.sprite.height
 
         if (self.sprite.scale > 2 and self.dscale > 0) or (self.sprite.scale < 0.5 and self.dscale < 0):
             self.dscale = -self.dscale
 
 # create snowflakes
-snowflakes = {}
-for window in windows:
-    snowflakes[id(window)] = [Snowflake(window) for _ in range(100)]
+snowflakes = [Snowflake() for _ in range(100)]
 
 def main():
     # time tracking and FPS
     now = time.clock()
     accum = 0.0
+            
 
     while True:
         # time and fps
         dt = time.clock() - now
         now += dt
         accum += dt
-
-        # print fps for window 1
-        if accum >= 1:
-            print(windows[0].get_fps())
-            accum -= 1
+        
+        if accum > 1.0:
+            accum = 0.0
+            for id, window in enumerate(windows):
+                if window.is_open():
+                    print("FPS of window %d: %f" % (id, window.get_fps()))
 
         # check if all windows are closed
         remaining = 0
@@ -88,13 +84,18 @@ def main():
                 remaining = True
                 break
         
-        if remaining == 0:
+        if not remaining:
             break
         
-        for window in windows:
+        # animate
+        for snowflake in snowflakes:
+            snowflake.animate(dt)
+        
+        for window_nr, window in enumerate(windows):
             if not window.is_open():
                 continue
             
+            # switch to window
             window.switch_to()
             
             # read new events
@@ -104,15 +105,8 @@ def main():
             if window.is_key_pressed(key.ESCAPE):
                 window.close()
 
-            # fullscreen?
-            if window.is_key_pressed(key.F11):
-                window.toggle_fullscreen()
-
-            for snowflake in snowflakes[id(window)]:
-                snowflake.animate(dt)
-
             window.clear()
-            spritegroup[id(window)].draw()
+            spritegroup.draw()
             window.flip()
 
         time.sleep(0.000001)
