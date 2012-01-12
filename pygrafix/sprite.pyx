@@ -308,8 +308,8 @@ cdef _drawlist(list spritelist, int start_index, int end_index, image.AbstractTe
     cdef GLubyte *colors
     cdef Sprite sprite
 
-    cdef int index
-    cdef size_t num_sprites = len(spritelist)
+    cdef int vertex_index, sprite_index
+    cdef size_t num_sprites = end_index - start_index
 
     glEnable(texture.target)
     glBindTexture(texture.target, texture.id)
@@ -342,14 +342,15 @@ cdef _drawlist(list spritelist, int start_index, int end_index, image.AbstractTe
         if vertices == NULL or texcoords == NULL or colors == NULL:
             raise MemoryError("Allocating memory for spritedata failed")
 
-        index = 0
+        vertex_index = 0
+        for sprite_index in range(start_index, end_index):
+            sprite = spritelist[sprite_index]
 
-        for index in range(start_index, end_index):
-            sprite = spritelist[index]
+            sprite._update_colors(colors + 4*4*vertex_index)
+            sprite._update_vertices(vertices + 8*vertex_index)
+            sprite._update_texcoords(texcoords + 8*vertex_index)
 
-            sprite._update_colors(colors + 4*4*index)
-            sprite._update_vertices(vertices + 8*index)
-            sprite._update_texcoords(texcoords + 8*index)
+            vertex_index += 1
 
         glEnableClientState(GL_COLOR_ARRAY)
         glEnableClientState(GL_TEXTURE_COORD_ARRAY)
