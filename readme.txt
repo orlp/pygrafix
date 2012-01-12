@@ -1,6 +1,7 @@
 pygrafix is a Python/Cython hardware-accelerated 2D graphics library.
 
 Why this project?
+-----------------
 There are two major game/graphics libraries for Python out there, Pygame
 and Pyglet. Pygame is built ontop of the SDL library and is very mature.
 It however lacks (IMO) a clean interface and has serious performance issues
@@ -14,6 +15,7 @@ tries to combine the great parts of both (and other) libraries while removing
 the awkwardness.
 
 Why Cython?
+-----------
 Cython allows the rapid development of Python (C modules ugh) to be combined
 with the speed of C. It is also very easy to wrap C libraries with, resulting
 in great performance too. Since I already decided parts of the library will
@@ -26,11 +28,14 @@ likely be shipping binaries to your end users removing the need of the C
 compiler too).
 
 On what external libraries does pygrafix rely?
+----------------------------------------------
 pygrafix currently relies only on GLFW, a lightweight C library that get
-wrapped with Cython. pygrafix also uses stb_image for image loading, but
-stb_image is shipped with pygrafix as source.
+wrapped with Cython. pygrafix also uses stb_image for image loading. Both
+are shipped with the source of pygrafix. To compile you need the developer
+32-bit version of Python, a C compiler, CMake and Cython installed.
 
 What are the core design goals?
+-------------------------------
  - Opening and using a window and recieving input
  - Loading common image formats into textures
  - Loading and using fonts
@@ -40,8 +45,48 @@ What are the core design goals?
 What other features might get added?
  - Loading and playing back sound
  - (2D) game specific high-performance modules (collision, vector, quaternion, etc)
- 
+
+How to compile
+--------------
+First you need to install the required software:
+ - CMake: http://www.cmake.org/ (latest version)
+ - Cython: http://www.cython.org/ (latest version)
+
+Windows doesn't come with a C compiler, so I recommend installing GCC. This can be
+done by installing MinGW through TDM-GCC (http://tdm-gcc.tdragon.net/).
+
+Compiling on Linux
+------------------
+First you need to compile GLFW 3. You do this by going into the libs/glfw directory
+and calling cmake. After that you want to call make.
+
+    $ cd libs/glfw
+    $ cmake
+    $ make
+
+After it's done go back to the top directory of pygrafix and invoke the build script:
+
+    $ cd ../..
+    $ python setup.py install
+
+You're done!
+
+Compiling on Windows
+--------------------
+On Windows it's almost the same, except than with MinGW. First we need to compile GLFW:
+
+    > cd libs\glfw
+    > cmake -G "MinGW Makefiles"
+    > make
+    
+And then pygg2:
+
+    > cd ..\..
+    > python setup.py build --compiler=mingw32
+    > python setup.py
+    
 Disclaimer:
+-----------
 Large amounts of code and ideas have been... lent from other projects. Keeping
 all copyright notices in the code would be unpractical, thus I have created
 a directoy called "licenses". All copyright owners will get a place in this
