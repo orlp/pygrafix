@@ -46,17 +46,18 @@ What other features might get added?
  - Loading and playing back sound
  - (2D) game specific high-performance modules (collision, vector, quaternion, etc)
 
-How to compile
---------------
-First you need to install the required software:
- - CMake: http://www.cmake.org/ (latest version)
- - Cython: http://www.cython.org/ (latest version)
-
-Windows doesn't come with a C compiler, so I recommend installing GCC. This can be
-done by installing MinGW through TDM-GCC (http://tdm-gcc.tdragon.net/).
-
 Compiling on Linux
 ------------------
+First you need to install the required software if you don't have it yet. If you
+don't have CMake yet (though that's unlikely) get it:
+
+sudo apt-get install cmake
+
+Now we need Cython. Cython can be downloaded from the repos but often is outdated.
+So download it from http://www.cython.org/ and build it from source (very easy).
+
+Now we need to compile pygrafix itself.
+
 First you need to compile GLFW 3. You do this by going into the libs/glfw directory
 and make a new directory "build". cd into the directory and call cmake on the above
 directory. After that you want to call make.
@@ -75,18 +76,25 @@ You're done!
 
 Compiling on Windows
 --------------------
-On Windows it's almost the same, except than with MinGW. First we need to compile GLFW:
+Windows doesn't come with a C compiler, so I recommend installing GCC. This can be
+done by installing MinGW through TDM-GCC (http://tdm-gcc.tdragon.net/). Make sure
+to get the 32-bit version, just like Python.
+
+You'll also need CMake, so get it from http://www.cmake.org/ (win32 installer).
+The same goes for Cython, get it from http://www.cython.org/ (win32 installer)
+
+First we need to compile GLFW:
 
     > mkdir libs\glfw\build
     > cd libs\glfw\build
     > cmake -G "MinGW Makefiles" ..
     > make
     
-And then pygg2:
+And then pygrafix itself:
 
     > cd ..\..\..
     > python setup.py build --compiler=mingw32
-    > python setup.py
+    > python setup.py install
 
 It might be possible that you get an error about "-mno-cygwin". In order to fix this
 you must go to your python install folder, find a file named "distutils.py" and
