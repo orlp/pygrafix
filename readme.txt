@@ -61,7 +61,7 @@ First you need to compile GLFW 3. You do this by going into the libs/glfw direct
 and calling cmake. After that you want to call make.
 
     $ cd libs/glfw
-    $ cmake
+    $ cmake .
     $ make
 
 After it's done go back to the top directory of pygrafix and invoke the build script:
@@ -76,7 +76,7 @@ Compiling on Windows
 On Windows it's almost the same, except than with MinGW. First we need to compile GLFW:
 
     > cd libs\glfw
-    > cmake -G "MinGW Makefiles"
+    > cmake -G "MinGW Makefiles" .
     > make
     
 And then pygg2:
@@ -84,7 +84,11 @@ And then pygg2:
     > cd ..\..
     > python setup.py build --compiler=mingw32
     > python setup.py
-    
+
+It might be possible that you get an error about "-mno-cygwin". In order to fix this you
+must go to your python install folder, find a file named "distutils.py" and remove all
+occurences of "-mno-cygwin". There sadly is, no other way.
+
 Disclaimer:
 -----------
 Large amounts of code and ideas have been... lent from other projects. Keeping
