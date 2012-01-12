@@ -86,8 +86,8 @@ And then pygg2:
     > python setup.py
 
 It might be possible that you get an error about "-mno-cygwin". In order to fix this
-you must go to your python install folder, find a file named "distutils.py" and remove
-all occurences of "-mno-cygwin". There sadly is no other way (this is a filed bug).
+you must go to your python install folder, find a file named "distutils.py" and
+remove all occurences of "-mno-cygwin". There sadly is no other way.
 
 Disclaimer:
 -----------
