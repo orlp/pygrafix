@@ -58,15 +58,17 @@ done by installing MinGW through TDM-GCC (http://tdm-gcc.tdragon.net/).
 Compiling on Linux
 ------------------
 First you need to compile GLFW 3. You do this by going into the libs/glfw directory
-and calling cmake. After that you want to call make.
+and make a new directory "build". cd into the directory and call cmake on the above
+directory. After that you want to call make.
 
-    $ cd libs/glfw
-    $ cmake .
+    $ mkdir libs/glfw/build
+    $ cd libs/glfw/build
+    $ cmake ..
     $ make
 
 After it's done go back to the top directory of pygrafix and invoke the build script:
 
-    $ cd ../..
+    $ cd ../../..
     $ python setup.py install
 
 You're done!
@@ -75,19 +77,24 @@ Compiling on Windows
 --------------------
 On Windows it's almost the same, except than with MinGW. First we need to compile GLFW:
 
-    > cd libs\glfw
-    > cmake -G "MinGW Makefiles" .
+    > mkdir libs\glfw\build
+    > cd libs\glfw\build
+    > cmake -G "MinGW Makefiles" ..
     > make
     
 And then pygg2:
 
-    > cd ..\..
+    > cd ..\..\..
     > python setup.py build --compiler=mingw32
     > python setup.py
 
 It might be possible that you get an error about "-mno-cygwin". In order to fix this
 you must go to your python install folder, find a file named "distutils.py" and
 remove all occurences of "-mno-cygwin". There sadly is no other way.
+
+Another thing, CMake might be giving you an error that it can not find a working GCC.
+I fixed this problem by opening my MinGW install directory and copy bin\make.exe to
+bin\mingw32-make.exe.
 
 Disclaimer:
 -----------
