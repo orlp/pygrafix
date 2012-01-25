@@ -6,8 +6,11 @@ import random
 import pygrafix
 from pygrafix.window import key
 
+WINDOW_HEIGHT = 400
+WINDOW_WIDTH = 300
+
 # open window and set up
-window = pygrafix.window.Window(800, 600, title = "Hares", fullscreen = False, vsync = False)
+windows = [pygrafix.window.Window(WINDOW_WIDTH, WINDOW_HEIGHT, title = "Snowflakes x3", fullscreen = False, vsync = False) for i in range(3)]
 
 # load resources
 snowflaketex = pygrafix.image.load("snowflake.png")
@@ -21,8 +24,8 @@ class Snowflake(object):
         self.sprite = pygrafix.sprite.Sprite(snowflaketex)
 
         # sprite init
-        self.sprite.x = random.uniform(0, window.width)
-        self.sprite.y = random.uniform(0, window.height)
+        self.sprite.x = random.uniform(0, WINDOW_HEIGHT)
+        self.sprite.y = random.uniform(0, WINDOW_WIDTH)
         self.sprite.scale = random.uniform(0.5, 2)
         self.sprite.rotation = random.uniform(0, 360)
 
@@ -44,52 +47,67 @@ class Snowflake(object):
         self.sprite.y += self.dy * dt
         self.sprite.rotation += self.drotation * dt
 
-        win_width, win_height = window.size
-
-        if (self.sprite.x < 0 and self.dx < 0) or (self.sprite.x > win_width and self.dx > 0):
+        if (self.sprite.x < 0 and self.dx < 0) or (self.sprite.x > WINDOW_WIDTH and self.dx > 0):
             self.dx = -self.dx
 
-        if self.sprite.y > win_height + self.sprite.height:
+        if self.sprite.y > WINDOW_HEIGHT + self.sprite.height:
             self.sprite.y = -self.sprite.height
 
         if (self.sprite.scale > 2 and self.dscale > 0) or (self.sprite.scale < 0.5 and self.dscale < 0):
             self.dscale = -self.dscale
 
 # create snowflakes
-snowflakes = [Snowflake() for _ in range(300)]
+snowflakes = [Snowflake() for _ in range(100)]
 
 def main():
     # time tracking and FPS
     now = time.clock()
     accum = 0.0
+            
 
     while True:
-        # read new events
-        window.poll_events()
-
-        # check if we need to quit
-        if not window.is_open() or window.is_key_pressed(key.ESCAPE):
-            break
-
-        # fullscreen?
-        if window.is_key_pressed(key.F11):
-            window.toggle_fullscreen()
-
         # time and fps
         dt = time.clock() - now
         now += dt
         accum += dt
+        
+        if accum > 1.0:
+            accum = 0.0
+            for id, window in enumerate(windows):
+                if window.is_open():
+                    print("FPS of window %d: %f" % (id, window.get_fps()))
 
-        if accum >= 1:
-            print(window.get_fps())
-            accum -= 1
-
+        # check if all windows are closed
+        remaining = 0
+        for window in windows:
+            if window.is_open():
+                remaining = True
+                break
+        
+        if not remaining:
+            break
+        
+        # animate
         for snowflake in snowflakes:
             snowflake.animate(dt)
+        
+        for window_nr, window in enumerate(windows):
+            if not window.is_open():
+                continue
+            
+            # switch to window
+            window.switch_to()
+            
+            # read new events
+            window.poll_events()
+            
+            # close window
+            if window.is_key_pressed(key.ESCAPE):
+                window.close()
 
-        window.clear()
-        spritegroup.draw()
-        window.flip()
+            window.clear()
+            spritegroup.draw()
+            window.flip()
 
         time.sleep(0.000001)
 
