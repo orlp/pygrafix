@@ -82,6 +82,7 @@ def main():
         if window.is_key_pressed(key.F11):
             window.toggle_fullscreen()
 
+
         # time and fps
         dt = time.clock() - now
         now += dt
@@ -95,6 +96,8 @@ def main():
             flame.animate(dt)
 
         window.clear()
+        pygrafix.draw.polygon([(0, 0), (30, 50), (50, 0)], (1.0, 0.5, 0.0))
+        pygrafix.draw.polygon_outline([(60+0, 0), (60+30, 50), (60+50, 0)], (1.0, 0.5, 0.0), width = 8)
         spritegroup.draw()
         window.flip()
 

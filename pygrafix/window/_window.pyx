@@ -1,6 +1,8 @@
 from pygrafix.c_headers.glew cimport *
 from pygrafix.c_headers.glfw cimport *
 
+from libc.stdlib cimport malloc, free
+
 import time
 import sys
 import weakref
@@ -457,3 +459,27 @@ def get_current_window():
 
 def get_open_windows():
     return [win() for win in _opened_windows if win()]
+
+def get_video_modes():
+    cdef GLFWvidmode* glfw_video_modes = <GLFWvidmode*> malloc(128 * sizeof(GLFWvidmode))
+    cdef GLFWvidmode video_mode
+
+    num_modes = glfwGetVideoModes(glfw_video_modes, 128)
+    video_modes = []
+
+    for i in range(num_modes):
+        video_mode = glfw_video_modes[i]
+        video_modes.append(
+            (video_mode.width, video_mode.height, (video_mode.redBits, video_mode.greenBits, video_mode.blueBits))
+        )
+
+    free(glfw_video_modes)
+
+    return video_modes
+
+def get_desktop_video_mode():
+    cdef GLFWvidmode video_mode
+
+    glfwGetDesktopMode(&video_mode)
+
+    return (video_mode.width, video_mode.height, (video_mode.redBits, video_mode.greenBits, video_mode.blueBits))

@@ -20,6 +20,8 @@ def _init_context():
     # enable blending
     glEnable(GL_BLEND)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+    #glHint(GL_LINE_SMOOTH_HINT, GL_NICEST)
+    #glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST)
 
     # make sure glColor is used
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE)
@@ -96,7 +98,7 @@ cdef class Sprite:
 
         self.visible = True
 
-    def draw(self, scale_smoothing = True, blending = "mix"):
+    def draw(self, scale_smoothing = True, edge_smoothing = False, blending = "mix"):
         cdef GLfloat vertices[8]
         cdef GLfloat texcoords[8]
         cdef GLubyte colors[16]
@@ -117,6 +119,11 @@ cdef class Sprite:
 
         glTexParameteri(self.texture.target, GL_TEXTURE_MIN_FILTER, filter)
         glTexParameteri(self.texture.target, GL_TEXTURE_MAG_FILTER, filter)
+
+        #if edge_smoothing:
+        #    glEnable(GL_POLYGON_SMOOTH)
+        #else:
+        #    glDisable(GL_POLYGON_SMOOTH)
 
         if blending == "add":
             glEnable(GL_BLEND)
@@ -140,7 +147,7 @@ cdef class Sprite:
 
         glDrawArrays(GL_QUADS, 0, 4)
 
-        glEnableClientState(GL_COLOR_ARRAY)
+        glDisableClientState(GL_COLOR_ARRAY)
         glDisableClientState(GL_VERTEX_ARRAY)
         glDisableClientState(GL_TEXTURE_COORD_ARRAY)
 
@@ -262,13 +269,15 @@ cdef class Sprite:
         colors[15] = a
 
 cdef class SpriteGroup:
-    cdef public list sprites
-    cdef readonly bint scale_smoothing
-    cdef readonly str blending
+    cdef list sprites
+    cdef public bint scale_smoothing
+    cdef public str blending
+    cdef public bint edge_smoothing
 
-    def __init__(self, scale_smoothing = True, blending = "mix", batch = None):
+    def __init__(self, scale_smoothing = True, edge_smoothing = False, blending = "mix", batch = None):
         self.scale_smoothing = scale_smoothing
         self.blending = blending
+        self.edge_smoothing = edge_smoothing
         self.sprites = []
 
         if batch:
@@ -297,12 +306,12 @@ cdef class SpriteGroup:
             while index < len(self.sprites) and self.sprites[index].texture == texture:
                 index += 1
 
-            _drawlist(self.sprites, start_index, index, texture, self.scale_smoothing, self.blending)
+            _drawlist(self.sprites, start_index, index, texture, self.scale_smoothing, self.edge_smoothing, self.blending)
 
     def __iter__(self):
         return iter(self.sprites)
 
-cdef _drawlist(list spritelist, int start_index, int end_index, image.AbstractTexture texture, bint scale_smoothing, str blending):
+cdef _drawlist(list spritelist, int start_index, int end_index, image.AbstractTexture texture, bint scale_smoothing, bint edge_smoothing, str blending):
     cdef GLfloat *vertices
     cdef GLfloat *texcoords
     cdef GLubyte *colors
@@ -321,6 +330,11 @@ cdef _drawlist(list spritelist, int start_index, int end_index, image.AbstractTe
 
     glTexParameteri(texture.target, GL_TEXTURE_MIN_FILTER, filter)
     glTexParameteri(texture.target, GL_TEXTURE_MAG_FILTER, filter)
+
+    #if edge_smoothing:
+    #    glEnable(GL_LINE_SMOOTH)
+    #else:
+    #    glDisable(GL_LINE_SMOOTH)
 
     if blending == "add":
         glEnable(GL_BLEND)

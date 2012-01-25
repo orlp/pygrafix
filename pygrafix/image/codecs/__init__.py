@@ -1,3 +1,5 @@
+import imp
+
 # exceptions
 class ImageDecodeException(Exception):
     pass

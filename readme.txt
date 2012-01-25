@@ -51,7 +51,7 @@ Compiling on Linux
 First you need to install the required software if you don't have it yet. If you
 don't have CMake yet (though that's unlikely) get it:
 
-sudo apt-get install cmake
+    $ sudo apt-get install cmake
 
 Now we need Cython. Cython can be downloaded from the repos but often is outdated.
 So download it from http://www.cython.org/ and build it from source (very easy).
@@ -60,7 +60,7 @@ Now we need to compile pygrafix itself.
 
 First you need to compile GLFW 3. You do this by going into the libs/glfw directory
 and make a new directory "build". cd into the directory and call cmake on the above
-directory. After that you want to call make.
+directory. After that you want to call make (BUT NOT make install).
 
     $ mkdir libs/glfw/build
     $ cd libs/glfw/build
@@ -70,7 +70,7 @@ directory. After that you want to call make.
 After it's done go back to the top directory of pygrafix and invoke the build script:
 
     $ cd ../../..
-    $ python setup.py install
+    $ sudo python setup.py install
 
 You're done!
 
@@ -89,7 +89,7 @@ First we need to compile GLFW:
     > cd libs\glfw\build
     > cmake -G "MinGW Makefiles" ..
     > make
-    
+
 And then pygrafix itself:
 
     > cd ..\..\..
@@ -104,8 +104,8 @@ Another thing, CMake might be giving you an error that it can not find a working
 I fixed this problem by opening my MinGW install directory and copy bin\make.exe to
 bin\mingw32-make.exe.
 
-Disclaimer:
------------
+Disclaimer
+----------
 Large amounts of code and ideas have been... lent from other projects. Keeping
 all copyright notices in the code would be unpractical, thus I have created
 a directoy called "licenses". All copyright owners will get a place in this
