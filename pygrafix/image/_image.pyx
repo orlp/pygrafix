@@ -8,6 +8,7 @@ _texture_regions = []
 
 # this has to be a from module import ***, because pygrafix.image is not defined yet
 from pygrafix import window
+from pygrafix.window._window import _register_context_init_func
 from pygrafix.image import codecs
 
 def _init_context():
@@ -246,4 +247,7 @@ def load(filename, file = None, decoder = None, ):
 
     raise error
 
-window.register_context_init_func(_init_context)
+_register_context_init_func(_init_context)
+
+
+__all__ = ["load", "ImageData", "Texture", "TextureRegion"]

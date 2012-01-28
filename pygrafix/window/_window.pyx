@@ -23,10 +23,10 @@ cdef list _context_destroy_funcs = []
 # we keep track of our opened windows (weakrefs)
 cdef list _opened_windows = []
 
-def register_context_init_func(func):
+def _register_context_init_func(func):
     _context_init_funcs.append(func)
 
-def register_context_destroy_func(func):
+def _register_context_destroy_func(func):
     _context_destroy_funcs.append(func)
 
 # callback handlers, these can't be part of Window thanks to issues with "self"
@@ -483,3 +483,5 @@ def get_desktop_video_mode():
     glfwGetDesktopMode(&video_mode)
 
     return (video_mode.width, video_mode.height, (video_mode.redBits, video_mode.greenBits, video_mode.blueBits))
+
+__all__ = ["Window", "get_current_window", "get_open_windows", "get_video_modes", "get_desktop_video_mode"]

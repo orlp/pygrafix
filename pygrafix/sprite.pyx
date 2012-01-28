@@ -5,6 +5,7 @@ from libc.math cimport sin, cos, M_PI
 from pygrafix.c_headers.glew cimport *
 
 from pygrafix import window
+from pygrafix.window._window import _register_context_init_func
 
 def _init_context():
     # init glew
@@ -386,4 +387,6 @@ cdef _drawlist(list spritelist, int start_index, int end_index, image.AbstractTe
 
     glDisable(texture.target)
 
-window.register_context_init_func(_init_context)
+_register_context_init_func(_init_context)
+
+__all__ = ["Sprite", "SpriteGroup"]
