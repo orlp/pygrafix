@@ -76,6 +76,10 @@ cdef class Sprite:
             return self.texture.height
 
     def __init__(self, texture):
+        """__init__(self, texture)
+
+        Creates a Sprite class. *texture* must be a texture returned from :mod:`pygrafix.image`."""
+        
         self.texture = texture
 
         self.x = 0.0

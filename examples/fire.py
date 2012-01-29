@@ -98,6 +98,7 @@ def main():
         window.clear()
         pygrafix.draw.polygon([(0, 0), (30, 50), (50, 0)], (1.0, 0.5, 0.0))
         pygrafix.draw.polygon_outline([(60+0, 0), (60+30, 50), (60+50, 0)], (1.0, 0.5, 0.0), width = 8)
+        pygrafix.draw.line((50, 50), (100, 100), color = (1.0, 0.0, 0.0))
         spritegroup.draw()
         window.flip()
 
