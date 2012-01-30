@@ -6,21 +6,21 @@ cdef class ImageData:
     cdef public int height
     cdef public str format
 
-cdef class AbstractTexture:
+cdef class InternalTexture:
     # we want our texture to be weakref'able
     cdef object __weakref__
+    cdef ImageData imgdata
+
+    cdef readonly width
+    cdef readonly height
 
     cdef GLuint id
     cdef GLenum target
 
+cdef class Texture:
+    # we want our texture to be weakref'able
+    cdef object __weakref__
+
+    cdef readonly InternalTexture internal_texture
+    cdef tuple _region
     cdef GLfloat[8] texcoords
-
-    cdef int tex_width
-    cdef int tex_height
-
-cdef class Texture(AbstractTexture):
-    cdef ImageData imgdata
-
-cdef class TextureRegion(AbstractTexture):
-    cdef tuple region
-    cdef readonly Texture texture

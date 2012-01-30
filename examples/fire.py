@@ -11,7 +11,7 @@ window = pygrafix.window.Window(800, 600, fullscreen = False, vsync = False)
 window.set_mouse_cursor(False)
 
 # load resources
-particle = pygrafix.image.load("particles.png").get_region(0, 0, 32, 32)
+particle = pygrafix.image.load("particles.png").get_texture_region(0, 0, 32, 32)
 
 # create sprite group
 spritegroup = pygrafix.sprite.SpriteGroup(blending = "add")
@@ -99,6 +99,7 @@ def main():
         pygrafix.draw.polygon([(0, 0), (30, 50), (50, 0)], (1.0, 0.5, 0.0))
         pygrafix.draw.polygon_outline([(60+0, 0), (60+30, 50), (60+50, 0)], (1.0, 0.5, 0.0), width = 8)
         pygrafix.draw.line((50, 50), (100, 100), color = (1.0, 0.0, 0.0))
+        
         spritegroup.draw()
         window.flip()
 

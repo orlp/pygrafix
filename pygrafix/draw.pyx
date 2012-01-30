@@ -2,9 +2,7 @@ from libc.stdlib cimport malloc, free
 from pygrafix.c_headers.glew cimport *
 
 def line(start_point, end_point, color = (1.0, 1.0, 1.0, 1.0), int width = 1, edge_smoothing = False, blending = "mix"):
-    """line(start_point, end_point[, color[, width[, edge_smoothing[, blending]]]])
-
-    This function draws a line between *start_point* and *end_point*. *color* must have the form *(red, green, blue, alpha)* with all components *0 <= c <= 1*. *blending* can be any of *"add"*, *"multiply"*, *"mix"* or *None*. The defaults are an opaque white line, 1 pixel wide, with no smoothing and mix blending."""
+    """This function draws a line between start_point and end_point. color must have the form *red, green, blue, alpha) with all components 0 <= c <= 1. blending can be any of "add", "multiply", "mix" or None. The defaults are an opaque white line, 1 pixel wide, with no smoothing and mix blending."""
 
     cdef int i
     cdef GLfloat color_arr[8]
@@ -52,9 +50,7 @@ def line(start_point, end_point, color = (1.0, 1.0, 1.0, 1.0), int width = 1, ed
     glDisableClientState(GL_VERTEX_ARRAY)
 
 def polygon(vertices, color = (1.0, 1.0, 1.0, 1.0), edge_smoothing = False, blending = "mix"):
-    """polygon(vertices[, color[, edge_smoothing[, blending]]])
-
-    This function draws a polygon with the given vertices. *vertices* should be a list for *(x, y)* tuples. At least 3 vertices must be given. *color* must have the form *(red, green, blue, alpha)* with all components *0 <= c <= 1*. *blending* can be any of *"add"*, *"multiply"*, *"mix"* or *None*. The defaults are an opaque white polygon, with no smoothing and mix blending. """
+    """This function draws a polygon with the given vertices. vertices should be a list of (x, y) tuples. At least 3 vertices must be given. color must have the form (red, green, blue[, alpha]) with all components 0 <= c <= 1. blending can be any of "add", "multiply", "mix" or None. The defaults are an opaque white polygon, with no smoothing and mix blending."""
 
     cdef int i, j
     cdef float color_value
@@ -112,9 +108,8 @@ def polygon(vertices, color = (1.0, 1.0, 1.0, 1.0), edge_smoothing = False, blen
     free(vertices_arr)
 
 def polygon_outline(vertices, color = (1.0, 1.0, 1.0, 1.0), width = 1, edge_smoothing = False, blending = "mix"):
-    """polygon_outline(vertices[, color[width, [, edge_smoothing[, blending]]]])
+    """This function draws the outline of a polygon with the given vertices. vertices should be a list of (x, y) tuples. At least 3 vertices must be given. color must have the form (red, green, blue[, alpha]) with all components 0 <= c <= 1. blending can be any of "add", "multiply", "mix" or None. The defaults are an opaque white 1 pixel outline, with no smoothing and mix blending."""
 
-    This function draws the outline of a polygon with the given vertices. *vertices* should be a list for *(x, y)* tuples. At least 3 vertices must be given. *color* must have the form *(red, green, blue, alpha)* with all components *0 <= c <= 1*. *blending* can be any of *"add"*, *"multiply"*, *"mix"* or *None*. The defaults are an opaque white 1 pixel outline, with no smoothing and mix blending. """
     cdef int i, j
     cdef float color_value
     cdef GLfloat *color_arr

@@ -448,6 +448,10 @@ cdef class Window:
 
 # and some free functions
 def get_current_window():
+    """get_current_window()
+
+    Returns the current active window."""
+
     cdef GLFWwindow current_context
 
     current_context = glfwGetCurrentContext()
@@ -458,9 +462,17 @@ def get_current_window():
     return <Window> glfwGetWindowUserPointer(current_context)
 
 def get_open_windows():
+    """get_open_windows()
+
+    Returns a list of all opened windows."""
+
     return [win() for win in _opened_windows if win()]
 
 def get_video_modes():
+    """get_video_modes()
+
+    Returns a list of all legal video modes in the form (width, height, (redbits, greenbits, bluebits))."""
+
     cdef GLFWvidmode* glfw_video_modes = <GLFWvidmode*> malloc(128 * sizeof(GLFWvidmode))
     cdef GLFWvidmode video_mode
 
@@ -478,6 +490,10 @@ def get_video_modes():
     return video_modes
 
 def get_desktop_video_mode():
+    """get_desktop_video_mode()
+
+    Returns the desktop video mode in the form (width, height, (redbits, greenbits, bluebits))."""
+
     cdef GLFWvidmode video_mode
 
     glfwGetDesktopMode(&video_mode)

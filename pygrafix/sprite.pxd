@@ -2,7 +2,7 @@ from pygrafix.c_headers.glew cimport GLfloat, GLubyte, GLshort
 cimport pygrafix.image._image as image
 
 cdef class Sprite:
-    cdef public image.AbstractTexture texture
+    cdef public image.Texture texture
     cdef public float x
     cdef public float y
     cdef public float anchor_x

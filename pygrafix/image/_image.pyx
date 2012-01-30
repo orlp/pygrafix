@@ -3,51 +3,45 @@ from pygrafix.c_headers.glew cimport *
 import math
 import weakref
 
+_gl_textures = []
 _textures = []
-_texture_regions = []
 
 # this has to be a from module import ***, because pygrafix.image is not defined yet
 from pygrafix import window
 from pygrafix.window._window import _register_context_init_func
 from pygrafix.image import codecs
 
+def get_next_pot(n):
+    return 2 ** (n - 1).bit_length()
+
 def _init_context():
-    global _textures, _texture_regions
+    global _gl_textures, _textures
 
     # init glew
     ret = glewInit()
     if ret != GLEW_OK:
         raise Exception("Error while initializing GLEW")
 
-
+    _gl_textures = [ref for ref in _gl_textures if ref()]
     _textures = [ref for ref in _textures if ref()]
-    _texture_regions = [ref for ref in _texture_regions if ref()]
+
+    for gl_texture in _gl_textures:
+        gl_texture()._upload_texture()
 
     for texture in _textures:
-        texture()._upload_texture()
-
-    for texture_region in _texture_regions:
-        texture_region()._update_info()
+        texture()._update_info()
 
 def _destroy_context():
-    cdef Texture texture
+    cdef InternalTexture gl_texture
 
-    global _textures, _texture_regions
+    global _gl_textures, _textures
 
+    _gl_textures = [ref for ref in _gl_textures if ref()]
     _textures = [ref for ref in _textures if ref()]
-    _texture_regions = [ref for ref in _texture_regions if ref()]
 
-    for texture in _textures:
-        glDeleteTextures(1, &texture.id)
-        texture.id = 0
-
-    for texture_region in _texture_regions:
-        texture_region().target = 0
-        texture_region().id = 0
-
-
-def get_next_pot(n):
-    return 2 ** (n - 1).bit_length()
+    for gl_texture in _gl_textures:
+        glDeleteTextures(1, &gl_texture.id)
+        gl_texture.id = 0
 
 cdef class ImageData:
     def __init__(self, width, height, format, data):
@@ -56,19 +50,11 @@ cdef class ImageData:
         self.format = format
         self.data = data
 
-cdef class Texture(AbstractTexture):
-    property width:
-        def __get__(self):
-            return self.tex_width
-
-    property height:
-        def __get__(self):
-            return self.tex_height
-
+cdef class InternalTexture:
     def __init__(self, imgdata):
         self.imgdata = imgdata
-        self.tex_width = imgdata.width
-        self.tex_height = imgdata.height
+        self.width = imgdata.width
+        self.height = imgdata.height
 
         old_current_window = window.get_current_window()
 
@@ -79,25 +65,16 @@ cdef class Texture(AbstractTexture):
         if old_current_window:
             old_current_window.switch_to()
 
-        _textures.append(weakref.ref(self))
+        _gl_textures.append(weakref.ref(self))
 
     def copy(self):
         newtex = Texture(self.imgdata)
 
         # imgdata.width might have been changed from the original amount. load our own width/height
-        newtex.tex_width = self.tex_width
-        newtex.tex_height = self.tex_height
+        newtex.width = self.width
+        newtex.height = self.height
 
         return newtex
-
-    def get_region(self, x = 0, y = 0, width = None, height = None):
-        if width == None:
-            width = self.tex_width
-
-        if height == None:
-            height = self.tex_height
-
-        return TextureRegion(self, x, y, width, height)
 
     def _upload_texture(self):
         if len(self.imgdata.format) == 4:
@@ -113,9 +90,6 @@ cdef class Texture(AbstractTexture):
 
         if GLEW_ARB_texture_non_power_of_two:
             self.target = GL_TEXTURE_2D
-        elif GLEW_ARB_texture_rectangle:
-            # do we have rectangle support?
-            self.target = GL_TEXTURE_RECTANGLE_ARB
         else:
             self.target = GL_TEXTURE_2D
 
@@ -145,89 +119,69 @@ cdef class Texture(AbstractTexture):
         glBindTexture(self.target, self.id)
         glTexImage2D(self.target, 0, oglformat, self.imgdata.width, self.imgdata.height, 0, oglformat, GL_UNSIGNED_BYTE, <char *> self.imgdata.data)
 
-        # generate texcoords
-        if self.target == GL_TEXTURE_RECTANGLE_ARB:
-            # (0, 0), (0, tex_height), (tex_width, tex_height), (tex_width, 0)
-            self.texcoords[0] = 0
-            self.texcoords[1] = 0
-            self.texcoords[2] = 0
-            self.texcoords[3] = self.imgdata.height
-            self.texcoords[4] = self.imgdata.width
-            self.texcoords[5] = self.imgdata.height
-            self.texcoords[6] = self.imgdata.width
-            self.texcoords[7] = 0
-        else:
-            # (0, 0), (0, 1), (1, 1), (1, 0)
-            self.texcoords[0] = 0
-            self.texcoords[1] = 0
-            self.texcoords[2] = 0
-            self.texcoords[3] = 1
-            self.texcoords[4] = 1
-            self.texcoords[5] = 1
-            self.texcoords[6] = 1
-            self.texcoords[7] = 0
-
     def __del__(self):
         glDeleteTextures(1, &self.id)
         self.imgdata = None
 
-cdef class TextureRegion(AbstractTexture):
+cdef class Texture:
+    property region:
+        def __get__(self):
+            return self._region
+
+        def __set__(self, region):
+            self._region = region
+            self._update_info()
+
     property width:
         def __get__(self):
-            return self.tex_width
+            return self._region[2]
 
     property height:
         def __get__(self):
-            return self.tex_height
+            return self._region[3]
 
-    def __init__(self, texture, x, y, width, height):
-        self.texture = texture
-        self.tex_width = width
-        self.tex_height = height
+    def __init__(self, internal_texture, region = None):
+        if region == None:
+            region = (0, 0, internal_texture.width, internal_texture.height)
 
-        self.region = (x, y, width, height)
+        self.internal_texture = internal_texture
+        self._region = region
 
-        old_current_window = window.get_current_window()
+        self._update_info()
 
-        for win in window.get_open_windows():
-            win.switch_to()
-            self._update_info()
+        _textures.append(weakref.ref(self))
 
-        if old_current_window:
-            old_current_window.switch_to()
+    def copy(self, lazycopy = True):
+        if lazycopy:
+            texture = self.internal_texture
+        else:
+            texture = self.internal_texture.copy()
 
-        _texture_regions.append(weakref.ref(self))
+        return Texture(self, texture, self.region)
+
+    def get_texture_region(self, x, y, width, height):
+        region = (self.region[0] + x, self.region[1] + y, width, height)
+
+        return Texture(self.internal_texture, region)
 
     def _update_info(self):
         cdef GLfloat x, y, width, height
 
-        self.id = self.texture.id
-        self.target = self.texture.target
-
         x, y, width, height = self.region
 
-        if self.target == GL_TEXTURE_RECTANGLE_ARB:
-            # (x, y), (x, y + tex_height), (x + tex_width, y + tex_height), (x + tex_width, y)
-            self.texcoords[0] = x
-            self.texcoords[1] = y
-            self.texcoords[2] = x
-            self.texcoords[3] = y + height
-            self.texcoords[4] = x + width
-            self.texcoords[5] = y + height
-            self.texcoords[6] = x + width
-            self.texcoords[7] = y
-        else:
-            # (0, 0), (0, 1), (1, 1), (1, 0)
-            self.texcoords[0] = x / self.texture.imgdata.width
-            self.texcoords[1] = y / self.texture.imgdata.height
-            self.texcoords[2] = x / self.texture.imgdata.width
-            self.texcoords[3] = (y + height) / self.texture.imgdata.height
-            self.texcoords[4] = (x + width) / self.texture.imgdata.width
-            self.texcoords[5] = (y + height) / self.texture.imgdata.height
-            self.texcoords[6] = (x + width) / self.texture.imgdata.width
-            self.texcoords[7] = y / self.texture.imgdata.height
+        # (0, 0), (0, 1), (1, 1), (1, 0)
+        self.texcoords[0] = x / self.internal_texture.imgdata.width
+        self.texcoords[1] = y / self.internal_texture.imgdata.height
+        self.texcoords[2] = x / self.internal_texture.imgdata.width
+        self.texcoords[3] = (y + height) / self.internal_texture.imgdata.height
+        self.texcoords[4] = (x + width) / self.internal_texture.imgdata.width
+        self.texcoords[5] = (y + height) / self.internal_texture.imgdata.height
+        self.texcoords[6] = (x + width) / self.internal_texture.imgdata.width
+        self.texcoords[7] = y / self.internal_texture.imgdata.height
 
-def load(filename, file = None, decoder = None, ):
+def load(filename, file = None, decoder = None):
+    """Loads an image from a file. If file is passed filename will be used as a hint for the filetype. Optionally you can specify a decoder argument which will be used for decoding the image."""
+
     if file == None:
         file = open(filename, "rb")
 
@@ -240,7 +194,7 @@ def load(filename, file = None, decoder = None, ):
     for decoder in codecs.get_decoders(filename):
         try:
             imgdata = decoder.decode(file, filename)
-            return Texture(imgdata)
+            return Texture(InternalTexture(imgdata))
         except codecs.ImageDecodeException as e:
             error = e
             file.seek(0)
@@ -250,4 +204,4 @@ def load(filename, file = None, decoder = None, ):
 _register_context_init_func(_init_context)
 
 
-__all__ = ["load", "ImageData", "Texture", "TextureRegion"]
+__all__ = ["load", "ImageData", "Texture"]

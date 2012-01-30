@@ -45,6 +45,23 @@ def _init_context():
     glTranslatef(0.375, 0.375, 0.0)
 
 cdef class Sprite:
+    """Sprite(self, texture)
+
+    Creates a Sprite class. *texture* must be a texture returned from :mod:`pygrafix.image`.
+
+    :ivar scale:
+    :ivar scale_x:
+    :ivar scale_y:
+    :ivar position:
+    :ivar x:
+    :ivar y:
+    :ivar anchor:
+    :ivar anchor_x:
+    :ivar anchor_y:
+    :ivar width: The width of the sprite. Equal to *sprite.texture.width*. Read-only.
+    :ivar height: The height of the sprite. Equal to *sprite.texture.height*. Read-only.
+    """
+
     property scale:
         def __get__(self):
             return self.scale_x
@@ -79,7 +96,7 @@ cdef class Sprite:
         """__init__(self, texture)
 
         Creates a Sprite class. *texture* must be a texture returned from :mod:`pygrafix.image`."""
-        
+
         self.texture = texture
 
         self.x = 0.0
@@ -104,26 +121,33 @@ cdef class Sprite:
         self.visible = True
 
     def draw(self, scale_smoothing = True, edge_smoothing = False, blending = "mix"):
+        """draw(self, scale_smoothing = True, edge_smoothing = False, blending = "mix")
+
+        Draws the sprite."""
+
+        cdef image.InternalTexture texture
         cdef GLfloat vertices[8]
         cdef GLfloat texcoords[8]
         cdef GLubyte colors[16]
 
         if not self.visible: return
 
+        texture = self.texture.internal_texture
+
         self._update_colors(colors)
         self._update_texcoords(texcoords)
         self._update_vertices(vertices)
 
-        glEnable(self.texture.target)
-        glBindTexture(self.texture.target, self.texture.id)
+        glEnable(texture.target)
+        glBindTexture(texture.target, texture.id)
 
         if scale_smoothing:
             filter = GL_LINEAR
         else:
             filter = GL_NEAREST
 
-        glTexParameteri(self.texture.target, GL_TEXTURE_MIN_FILTER, filter)
-        glTexParameteri(self.texture.target, GL_TEXTURE_MAG_FILTER, filter)
+        glTexParameteri(texture.target, GL_TEXTURE_MIN_FILTER, filter)
+        glTexParameteri(texture.target, GL_TEXTURE_MAG_FILTER, filter)
 
         #if edge_smoothing:
         #    glEnable(GL_POLYGON_SMOOTH)
@@ -156,9 +180,10 @@ cdef class Sprite:
         glDisableClientState(GL_VERTEX_ARRAY)
         glDisableClientState(GL_TEXTURE_COORD_ARRAY)
 
-        glDisable(self.texture.target)
+        glDisable(texture.target)
 
     cdef inline void _update_vertices(self, GLfloat *vertices):
+        cdef float width, height
         cdef float x1, y1, x2, y2, x, y
         cdef float tmp_x, tmp_y
 
@@ -289,12 +314,7 @@ cdef class SpriteGroup:
             batch.add_group(self)
 
     def add_sprite(self, Sprite sprite):
-        index = 0
-
-        while index < len(self.sprites) and sprite.texture != self.sprites[index].texture:
-            index += 1
-
-        self.sprites.insert(index, sprite)
+        self.sprites.append(sprite)
 
     def draw(self):
         cdef Sprite sprite
@@ -303,12 +323,14 @@ cdef class SpriteGroup:
         if not self.sprites:
             return
 
+        self.sprites.sort(cmp = lambda x, y: x.texture.internal_texture != y.texture.internal_texture)
+
         index = 0
         while index < len(self.sprites):
             start_index = index
-            texture = self.sprites[index].texture
+            texture = self.sprites[index].texture.internal_texture
 
-            while index < len(self.sprites) and self.sprites[index].texture == texture:
+            while index < len(self.sprites) and self.sprites[index].texture.internal_texture == texture:
                 index += 1
 
             _drawlist(self.sprites, start_index, index, texture, self.scale_smoothing, self.edge_smoothing, self.blending)
@@ -316,7 +338,7 @@ cdef class SpriteGroup:
     def __iter__(self):
         return iter(self.sprites)
 
-cdef _drawlist(list spritelist, int start_index, int end_index, image.AbstractTexture texture, bint scale_smoothing, bint edge_smoothing, str blending):
+cdef _drawlist(list spritelist, int start_index, int end_index, image.InternalTexture texture, bint scale_smoothing, bint edge_smoothing, str blending):
     cdef GLfloat *vertices
     cdef GLfloat *texcoords
     cdef GLubyte *colors
