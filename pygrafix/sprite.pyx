@@ -28,7 +28,7 @@ def _init_context():
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE)
 
     # set up the correct viewport
-    width, height = window.get_current_window().size
+    width, height = window.get_active_window().size
     glViewport(0, 0, width, height)
 
     glMatrixMode(GL_PROJECTION)

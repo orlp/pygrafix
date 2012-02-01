@@ -56,7 +56,7 @@ cdef class InternalTexture:
         self.width = imgdata.width
         self.height = imgdata.height
 
-        old_current_window = window.get_current_window()
+        old_current_window = window.get_active_window()
 
         for win in window.get_open_windows():
             win.switch_to()

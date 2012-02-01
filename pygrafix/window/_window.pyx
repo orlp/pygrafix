@@ -447,8 +447,8 @@ cdef class Window:
 
 
 # and some free functions
-def get_current_window():
-    """get_current_window()
+def get_active_window():
+    """get_active_window()
 
     Returns the current active window."""
 

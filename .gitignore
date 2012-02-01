@@ -7,4 +7,4 @@
 .komodotools/*
 dist/*
 build/*
-docs/_build/*
+docs/build/*

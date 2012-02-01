@@ -74,8 +74,8 @@ setup(
 # if we are cleaning, clean the .cy.c scripts too
 if "clean" in sys.argv:
     matches = []
-    for root, dirnames, filenames in os.walk("pygrafix"):
-        for filename in fnmatch.filter(filenames, "*.cy.c"):
+    for root, dirnames, filenames in os.walk("."):
+        for filename in fnmatch.filter(filenames, "*.cy.c") + fnmatch.filter(filenames, "*.pyc"):
             matches.append(os.path.join(root, filename))
 
     for filename in matches:
