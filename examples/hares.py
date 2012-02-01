@@ -12,8 +12,8 @@ window = pygrafix.window.Window(800, 600, title = "Hares", fullscreen = False, v
 # load resources
 haretex = pygrafix.image.load("hare.png")
 
-# create sprite group
-spritegroup = pygrafix.sprite.SpriteGroup()
+# create list of sprites used for batching
+sprites_batch = []
 
 # hare object
 class Hare(object):
@@ -40,8 +40,8 @@ class Hare(object):
         self.drotation = random.uniform(0, 80)
         self.dscale = random.uniform(-1.0, 1.0)
 
-        # register sprite in spritegroup
-        spritegroup.add_sprite(self.sprite)
+        # add sprite to our batch
+        sprites_batch.append(self.sprite)
 
     def animate(self, dt):
         self.sprite.x += self.dx * dt
@@ -86,14 +86,14 @@ def main():
         accum += dt
 
         if accum >= 1:
-            print(1/window.get_fps())
+            print(window.get_fps())
             accum -= 1
 
         for hare in hares:
             hare.animate(dt)
 
         window.clear()
-        spritegroup.draw()
+        pygrafix.sprite.draw_batch(sprites_batch)
         window.flip()
 
 

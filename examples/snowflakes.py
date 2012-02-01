@@ -15,8 +15,8 @@ windows = [pygrafix.window.Window(WINDOW_WIDTH, WINDOW_HEIGHT, title = "Snowflak
 # load resources
 snowflaketex = pygrafix.image.load("snowflake.png")
 
-# create sprite group
-spritegroup = pygrafix.sprite.SpriteGroup()
+# create list of sprites for batching
+sprites_batch = []
 
 # snowflake object
 class Snowflake(object):
@@ -39,8 +39,8 @@ class Snowflake(object):
         self.dy = random.uniform(0, 200)
         self.drotation = random.uniform(0, 80)
 
-        # register sprite in spritegroup
-        spritegroup.add_sprite(self.sprite)
+        # add sprite to batch
+        sprites_batch.append(self.sprite)
 
     def animate(self, dt):
         self.sprite.x += self.dx * dt
@@ -63,14 +63,14 @@ def main():
     # time tracking and FPS
     now = time.clock()
     accum = 0.0
-            
+
 
     while True:
         # time and fps
         dt = time.clock() - now
         now += dt
         accum += dt
-        
+
         if accum > 1.0:
             accum = 0.0
             for id, window in enumerate(windows):
@@ -83,30 +83,31 @@ def main():
             if window.is_open():
                 remaining = True
                 break
-        
+
         if not remaining:
             break
-        
+
         # animate
         for snowflake in snowflakes:
             snowflake.animate(dt)
-        
+
         for window_nr, window in enumerate(windows):
             if not window.is_open():
                 continue
-            
+
             # switch to window
             window.switch_to()
-            
+
             # read new events
             window.poll_events()
-            
+
             # close window
             if window.is_key_pressed(key.ESCAPE):
                 window.close()
 
+            # draw stuff
             window.clear()
-            spritegroup.draw()
+            pygrafix.sprite.draw_batch(sprites_batch)
             window.flip()
 
         time.sleep(0.000001)

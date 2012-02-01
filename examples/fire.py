@@ -13,8 +13,8 @@ window.set_mouse_cursor(False)
 # load resources
 particle = pygrafix.image.load("particles.png").get_texture_region(0, 0, 32, 32)
 
-# create sprite group
-spritegroup = pygrafix.sprite.SpriteGroup(blending = "add")
+# create list of sprites for batching
+sprite_batch = []
 
 class Flameparticle(object):
     def __init__(self):
@@ -40,8 +40,8 @@ class Flameparticle(object):
         self.dy = random.uniform(-90, 0)
         self.dalpha = -self.sprite.alpha / self.life_time
 
-        # register sprite in spritegroup
-        spritegroup.add_sprite(self.sprite)
+        # add our sprite to the sprite batch
+        sprite_batch.append(self.sprite)
 
     def animate(self, dt):
         self.sprite.x += self.dx * dt
@@ -82,7 +82,6 @@ def main():
         if window.is_key_pressed(key.F11):
             window.toggle_fullscreen()
 
-
         # time and fps
         dt = time.clock() - now
         now += dt
@@ -99,8 +98,8 @@ def main():
         pygrafix.draw.polygon([(0, 0), (30, 50), (50, 0)], (1.0, 0.5, 0.0))
         pygrafix.draw.polygon_outline([(60+0, 0), (60+30, 50), (60+50, 0)], (1.0, 0.5, 0.0), width = 8)
         pygrafix.draw.line((50, 50), (100, 100), color = (1.0, 0.0, 0.0))
-        
-        spritegroup.draw()
+
+        pygrafix.sprite.draw_batch(sprite_batch, blending = "add")
         window.flip()
 
         time.sleep(0.000001)

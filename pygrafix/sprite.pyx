@@ -338,6 +338,33 @@ cdef class SpriteGroup:
     def __iter__(self):
         return iter(self.sprites)
 
+def _cmp_sprites(Sprite x, Sprite y):
+    if x.texture.internal_texture.id == y.texture.internal_texture.id:
+        return 0
+
+    xsize = x.texture.internal_texture.width * x.texture.internal_texture.height
+    ysize = y.texture.internal_texture.width * y.texture.internal_texture.height
+
+    return 1 - 2 * (xsize < ysize)
+
+def draw_batch(sprites, scale_smoothing = True, edge_smoothing = False, blending = "mix"):
+    draw_batch_inorder(sorted(sprites, _cmp_sprites), scale_smoothing, edge_smoothing, blending)
+
+def draw_batch_inorder(sprites, scale_smoothing = True, edge_smoothing = False, blending = "mix"):
+    cdef int start_index, stop_index
+
+    sprites = list(sprites)
+
+    stop_index = 0
+    while stop_index < len(sprites):
+        start_index = stop_index
+        texture = sprites[start_index].texture.internal_texture
+
+        while stop_index < len(sprites) and sprites[stop_index].texture.internal_texture == texture:
+            stop_index += 1
+
+        _drawlist(sprites, start_index, stop_index, texture, scale_smoothing, edge_smoothing, blending)
+
 cdef _drawlist(list spritelist, int start_index, int end_index, image.InternalTexture texture, bint scale_smoothing, bint edge_smoothing, str blending):
     cdef GLfloat *vertices
     cdef GLfloat *texcoords
