@@ -347,13 +347,11 @@ def _cmp_sprites(Sprite x, Sprite y):
 
     return 1 - 2 * (xsize < ysize)
 
-def draw_batch(sprites, scale_smoothing = True, edge_smoothing = False, blending = "mix"):
-    draw_batch_inorder(sorted(sprites, _cmp_sprites), scale_smoothing, edge_smoothing, blending)
-
-def draw_batch_inorder(sprites, scale_smoothing = True, edge_smoothing = False, blending = "mix"):
+def draw_batch(sprites, preserve_order = False, scale_smoothing = True, edge_smoothing = False, blending = "mix"):
     cdef int start_index, stop_index
 
-    sprites = list(sprites)
+    if not preserve_order:
+        sprites = sorted(sprites, cmp = _cmp_sprites)
 
     stop_index = 0
     while stop_index < len(sprites):
