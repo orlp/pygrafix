@@ -298,46 +298,6 @@ cdef class Sprite:
         colors[14] = b
         colors[15] = a
 
-cdef class SpriteGroup:
-    cdef list sprites
-    cdef public bint scale_smoothing
-    cdef public str blending
-    cdef public bint edge_smoothing
-
-    def __init__(self, scale_smoothing = True, edge_smoothing = False, blending = "mix", batch = None):
-        self.scale_smoothing = scale_smoothing
-        self.blending = blending
-        self.edge_smoothing = edge_smoothing
-        self.sprites = []
-
-        if batch:
-            batch.add_group(self)
-
-    def add_sprite(self, Sprite sprite):
-        self.sprites.append(sprite)
-
-    def draw(self):
-        cdef Sprite sprite
-        cdef int i
-
-        if not self.sprites:
-            return
-
-        self.sprites.sort(cmp = lambda x, y: x.texture.internal_texture != y.texture.internal_texture)
-
-        index = 0
-        while index < len(self.sprites):
-            start_index = index
-            texture = self.sprites[index].texture.internal_texture
-
-            while index < len(self.sprites) and self.sprites[index].texture.internal_texture == texture:
-                index += 1
-
-            _drawlist(self.sprites, start_index, index, texture, self.scale_smoothing, self.edge_smoothing, self.blending)
-
-    def __iter__(self):
-        return iter(self.sprites)
-
 def _cmp_sprites(Sprite x, Sprite y):
     if x.texture.internal_texture.id == y.texture.internal_texture.id:
         return 0
@@ -440,4 +400,4 @@ cdef _drawlist(list spritelist, int start_index, int end_index, image.InternalTe
 
 _register_context_init_func(_init_context)
 
-__all__ = ["Sprite", "SpriteGroup"]
+__all__ = ["Sprite", "draw_batch"]

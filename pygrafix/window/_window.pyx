@@ -500,4 +500,4 @@ def get_desktop_video_mode():
 
     return (video_mode.width, video_mode.height, (video_mode.redBits, video_mode.greenBits, video_mode.blueBits))
 
-__all__ = ["Window", "get_current_window", "get_open_windows", "get_video_modes", "get_desktop_video_mode"]
+__all__ = ["Window", "get_active_window", "get_open_windows", "get_video_modes", "get_desktop_video_mode"]
