@@ -118,6 +118,7 @@ cdef class Window:
     cdef object __weakref__
 
     # internal, private variables
+    cdef GLFWwindow _window
     cdef bint _mouse_cursor
     cdef bint _key_repeat
     cdef bint _vsync
@@ -125,7 +126,6 @@ cdef class Window:
     cdef str _title
     cdef double _frametime
     cdef double _last_flip
-    cdef GLFWwindow _window
 
     # these have to be public because non-member functions use them
     cdef public _closed
@@ -139,10 +139,6 @@ cdef class Window:
     cdef public object _key_press_callback
     cdef public object _key_release_callback
     cdef public object _text_callback
-
-    # read-only properties
-    # they are read-only because changing them is either impossible or very expensive
-    cdef readonly bint fullscreen
 
     # special properties
     property width:
@@ -193,25 +189,26 @@ cdef class Window:
 
     property mouse_cursor:
         def __get__(self):
-            return self._mouse_cursor
+            return bool(glfwGetInputMode(self._window, GLFW_CURSOR_MODE))
 
-        def __set__(self, bint mouse_cursor):
-            if mouse_cursor:
-                glfwSetCursorMode(self._window, GLFW_CURSOR_NORMAL)
+        def __set__(self, mouse_cursor):
+            if mouse_cursor == "normal":
+                mode = GLFW_CURSOR_NORMAL
+            elif mouse_cursor == "hidden":
+                mode = GLFW_CURSOR_HIDDEN
+            elif mouse_cursor == "captured":
+                mode = GLFW_CURSOR_CAPTURED
             else:
-                glfwDisable(self._window, GLFW_CURSOR_CAPTURED)
+                raise Exception("Unknown mouse_cursor value, possibilities are \"normal\", \"hidden\" and \"captured\".")
 
-            self._mouse_cursor = mouse_cursor
+            glfwSetInputMode(self._window, GLFW_CURSOR_MODE, mode)
 
     property key_repeat:
         def __get__(self):
             return self._key_repeat
 
         def __set__(self, bint key_repeat):
-            if key_repeat:
-                glfwEnable(self._window, GLFW_KEY_REPEAT)
-            else:
-                glfwDisable(self._window, GLFW_KEY_REPEAT)
+            glfwSetInputMode(self._window, GLFW_KEY_REPEAT, key_repeat)
 
             self._key_repeat = key_repeat
 
@@ -235,7 +232,6 @@ cdef class Window:
                 title = self.title
                 vsync = self.vsync
                 resizable = self.resizable
-                mouse_cursor = self.mouse_cursor
                 key_repeat = self.key_repeat
 
                 rbits = glfwGetWindowParam(self._window, GLFW_RED_BITS)
@@ -249,8 +245,20 @@ cdef class Window:
 
                 # re-open window
                 self.__init__(width, height, title, fullscreen, resizable, refresh_rate, vsync, bit_depth)
-                self.set_mouse_cursor(mouse_cursor)
-                self.set_key_repeat(key_repeat)
+                self.mouse_cursor = mouse_cursor
+                self.key_repeat = key_repeat
+
+    property position:
+        def __get__(self):
+            cdef int x, y
+            glfwGetWindowPos(self._window, &x, &y)
+
+            return x, y
+
+        def __set__(self, tup):
+            cdef int x, y
+            x, y = tup
+            glfwSetWindowPos(self._window, x, y)
 
 
     def __cinit__(self):
@@ -306,10 +314,10 @@ cdef class Window:
             self.set_position(display.width / 2 - width / 2, display.height / 2 - height / 2)
 
         # set extra settings
-        self.set_mouse_cursor(True)
-        self.set_key_repeat(True)
-        self.set_vsync(vsync)
-        self.set_title(title)
+        self.mouse_cursor = True
+        self.key_repeat = True
+        self.vsync = vsync
+        self.title = title
 
         # set up event handlers
         glfwSetWindowCloseCallback(&_close_callback_handler)
@@ -346,9 +354,6 @@ cdef class Window:
 
     def wait_events(self):
         glfwWaitEvents()
-
-    def set_position(self, int x, int y):
-        glfwSetWindowPos(self._window, x, y)
 
     def minimize(self):
         glfwIconifyWindow(self._window)

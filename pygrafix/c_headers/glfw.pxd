@@ -215,6 +215,7 @@ cdef extern from "glfw_include.h":
         GLFW_OPENGL_COMPAT_PROFILE
         GLFW_OPENGL_ES2_PROFILE
 
+        GLFW_CURSOR_MODE
         GLFW_STICKY_KEYS
         GLFW_STICKY_MOUSE_BUTTONS
         GLFW_SYSTEM_KEYS
@@ -254,8 +255,6 @@ cdef extern from "glfw_include.h":
     ctypedef void (*GLFWscrollfun)(GLFWwindow, int, int)
     ctypedef void (*GLFWkeyfun)(GLFWwindow, int, int)
     ctypedef void (*GLFWcharfun)(GLFWwindow, int)
-    ctypedef void* (*GLFWmallocfun)(size_t)
-    ctypedef void (*GLFWfreefun)(void*)
 
     ctypedef struct GLFWvidmode:
         int width
@@ -269,15 +268,7 @@ cdef extern from "glfw_include.h":
         unsigned short *green
         unsigned short *blue
 
-    ctypedef struct GLFWallocator:
-        GLFWmallocfun malloc
-        GLFWfreefun free
-
-    ctypedef struct GLFWthreadmodel:
-        int dummy
-
     cdef int glfwInit()
-    cdef int glfwInitWithModels(GLFWthreadmodel *threading, GLFWallocator *allocator)
     cdef void glfwTerminate()
     cdef void glfwGetVersion(int *major, int *minor, int *rev)
     cdef char* glfwGetVersionString()
@@ -316,6 +307,8 @@ cdef extern from "glfw_include.h":
     cdef void glfwPollEvents()
     cdef void glfwWaitEvents()
 
+    cdef int glfwGetInputMode(GLFWwindow window, int mode)
+    cdef void glfwSetInputMode(GLFWwindow window, int mode, int value)
     cdef int glfwGetKey(GLFWwindow window, int key)
     cdef int glfwGetMouseButton(GLFWwindow window, int button)
     cdef void glfwGetMousePos(GLFWwindow window, int *xpos, int *ypos)
