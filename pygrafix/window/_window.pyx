@@ -233,6 +233,7 @@ cdef class Window:
                 vsync = self.vsync
                 resizable = self.resizable
                 key_repeat = self.key_repeat
+                mouse_cursor = self.mouse_cursor
 
                 rbits = glfwGetWindowParam(self._window, GLFW_RED_BITS)
                 gbits = glfwGetWindowParam(self._window, GLFW_GREEN_BITS)
