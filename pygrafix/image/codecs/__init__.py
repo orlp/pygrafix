@@ -1,8 +1,14 @@
-import imp
-
 # exceptions
 class ImageDecodeException(Exception):
     pass
+
+# base classes
+class ImageDecoder:
+    def get_extensions(self):
+        raise NotImplementedError("class template")
+
+    def decode(self, file, filename):
+        raise NotImplementedError("class template")
 
 _decoders = []
 _encoders = []

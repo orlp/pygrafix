@@ -47,19 +47,7 @@ def _init_context():
 cdef class Sprite:
     """Sprite(self, texture)
 
-    Creates a Sprite class. *texture* must be a texture returned from :mod:`pygrafix.image`.
-
-    :ivar scale:
-    :ivar scale_x:
-    :ivar scale_y:
-    :ivar position:
-    :ivar x:
-    :ivar y:
-    :ivar anchor:
-    :ivar anchor_x:
-    :ivar anchor_y:
-    :ivar width: The width of the sprite. Equal to *sprite.texture.width*. Read-only.
-    :ivar height: The height of the sprite. Equal to *sprite.texture.height*. Read-only.
+    Creates a Sprite class. texture must be a pygrafix.image.Texture.
     """
 
     property scale:
@@ -93,10 +81,6 @@ cdef class Sprite:
             return self.texture.height
 
     def __init__(self, texture):
-        """__init__(self, texture)
-
-        Creates a Sprite class. *texture* must be a texture returned from :mod:`pygrafix.image`."""
-
         self.texture = texture
 
         self.x = 0.0

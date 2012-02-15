@@ -127,5 +127,6 @@ MENU                 = 348
 
 _key_names = {}
 for _name, _value in locals().items():
+    # all our constants are all-uppercase, so we can filter them on that
     if _name.upper() == _name:
         _key_names[_value] = _name

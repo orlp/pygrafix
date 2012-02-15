@@ -121,8 +121,12 @@ if (UNIX AND APPLE)
     
     # Set up library and include paths
     find_library(COCOA_FRAMEWORK Cocoa)
+    find_library(IOKIT_FRAMEWORK IOKit)
+    find_library(CORE_FOUNDATION_FRAMEWORK CoreFoundation)
     list(APPEND GLFW_LIBRARIES ${COCOA_FRAMEWORK})
     list(APPEND GLFW_LIBRARIES ${OPENGL_gl_LIBRARY})
+    list(APPEND GLFW_LIBRARIES ${IOKIT_FRAMEWORK})
+    list(APPEND GLFW_LIBRARIES ${CORE_FOUNDATION_FRAMEWORK})
 endif(UNIX AND APPLE)
 
 #--------------------------------------------------------------------
@@ -151,12 +155,9 @@ install(FILES COPYING.txt readme.html
 #--------------------------------------------------------------------
 # -- Documentation generation 
 #--------------------------------------------------------------------
-#include("${GLFW_SOURCE_DIR}/documentation.cmake")
-#configure_file("${GLFW_SOURCE_DIR}/Doxyfile.in"
-#               "${GLFW_BINARY_DIR}/Doxyfile"
-#               IMMEDIATE @ONLY)
-#add_doxygen_target("${GLFW_BINARY_DIR}/Doxyfile")
-#add_subdirectory(docs)
+configure_file("${GLFW_SOURCE_DIR}/docs/Doxyfile.in"
+               "${GLFW_BINARY_DIR}/docs/Doxyfile"
+               @ONLY)
 
 #--------------------------------------------------------------------
 # Uninstall operation

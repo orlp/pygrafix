@@ -1,9 +1,9 @@
 from pygrafix.c_headers.stb_image cimport *
 
 from pygrafix.image import ImageData
-from pygrafix.image.codecs import ImageDecodeException
+from pygrafix.image.codecs import ImageDecodeException, ImageDecoder
 
-class StbImageDecoder:
+class StbImageDecoder(ImageDecoder):
     def get_extensions(self):
         return ["bmp", "tga", "psd", "png", "jpg", "gif"]
 
