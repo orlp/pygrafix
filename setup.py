@@ -47,7 +47,7 @@ setup(
         Extension("pygrafix.window._window", ["pygrafix/window/_window.pyx"],
             include_dirs = ["pygrafix/c_headers"],
             library_dirs = ["libs/glfw/build/src"],
-            libraries = ["glfw", opengl_lib],
+            libraries = ["glfw", glew_lib, opengl_lib],
             extra_compile_args = ["-Wno-unused-but-set-variable", "-Wno-strict-aliasing", "-O2"],
             extra_link_args = ["-s"],
             depends = ["pygrafix/c_headers/glew.pxd", "pygrafix/c_headers/glfw.pxd"]

@@ -13,27 +13,23 @@ if sys.platform == "win32":
 else:
     timefunc = time.time
 
+# glfw init func, call this before anything
 # FIXME glfw has a bug changing the CWD. save 'n restore
+
 _backup_cwd = os.path.abspath(os.getcwd())
 
-# glfw init func, call this before anything
 if not glfwInit():
     raise Exception("Couldn't initialize GLFW")
 
 os.chdir(_backup_cwd)
 
-# every function in this list gets called when the context gets created/destroyed
+
+# every function in this list gets called when the context gets created/destroyed (internal use only)
 _context_init_funcs = []
 _context_destroy_funcs = []
 
-# we keep track of our opened windows (weakrefs)
+# we keep track of our opened windows in this list (weakrefs)
 _opened_windows = []
-
-def _register_context_init_func(func):
-    _context_init_funcs.append(func)
-
-def _register_context_destroy_func(func):
-    _context_destroy_funcs.append(func)
 
 # callback handlers, these can't be part of Window thanks to issues with "self"
 # the close callback handler - default behaviour is to close the application
@@ -53,6 +49,7 @@ cdef int _close_callback_handler(GLFWwindow window) with gil:
 
         return GL_TRUE
 
+
 # this gets called when the window needs to be redrawn due to effects from the outside
 # (for example when a previously hidden part of the window has become visible)
 cdef void _refresh_callback_handler(GLFWwindow window) with gil:
@@ -62,6 +59,7 @@ cdef void _refresh_callback_handler(GLFWwindow window) with gil:
     except:
         pass
 
+
 # this gets called when the user resizes the window
 # (NOT when window.set_size() is called)
 cdef void _resize_callback_handler(GLFWwindow window, int width, int height) with gil:
@@ -70,6 +68,7 @@ cdef void _resize_callback_handler(GLFWwindow window, int width, int height) wit
         self._resize_callback(self, width, height)
     except:
         pass
+
 
 # this gets called when the user scrolls
 cdef void _mouse_scroll_callback_handler(GLFWwindow window, int posx, int posy) with gil:
@@ -83,6 +82,7 @@ cdef void _mouse_scroll_callback_handler(GLFWwindow window, int posx, int posy) 
     except:
         pass
 
+
 # this gets called when the user moves his mouse
 cdef void _mouse_move_callback_handler(GLFWwindow window, int x, int y) with gil:
     try:
@@ -90,6 +90,7 @@ cdef void _mouse_move_callback_handler(GLFWwindow window, int x, int y) with gil
         self._mouse_move_callback(self, x, y)
     except:
         pass
+
 
 # this gets called when the user presses or releases a key
 cdef void _key_callback_handler(GLFWwindow window, int key, int action) with gil:
@@ -103,6 +104,7 @@ cdef void _key_callback_handler(GLFWwindow window, int key, int action) with gil
     except:
         pass
 
+
 # this gets called when the user inputs a printable character
 cdef void _char_callback_handler(GLFWwindow window, int char) with gil:
     try:
@@ -111,6 +113,7 @@ cdef void _char_callback_handler(GLFWwindow window, int char) with gil:
         self._text_callback(self, chr(char))
     except:
         pass
+
 
 # the window class
 cdef class Window:
@@ -128,7 +131,7 @@ cdef class Window:
     cdef double _last_flip
 
     # these have to be public because non-member functions use them
-    cdef public _closed
+    cdef public bint _closed
     cdef public int _mousewheel_pos
 
     cdef public object _close_callback
@@ -139,141 +142,6 @@ cdef class Window:
     cdef public object _key_press_callback
     cdef public object _key_release_callback
     cdef public object _text_callback
-
-    # special properties
-    property width:
-        def __get__(self):
-            return self.size[0]
-
-        def __set__(self, int width):
-            self.size = (width, self.height)
-
-    property height:
-        def __get__(self):
-            return self.size[1]
-
-        def __set__(self, int height):
-            self.size = (self.width, height)
-
-    property size:
-        def __get__(self):
-            cdef int w, h
-
-            w, h = -1, -1
-            glfwGetWindowSize(self._window, &w, &h)
-
-            if h == -1 or w == -1:
-                raise Exception("Error while retrieving size.")
-
-            return w, h
-
-        def __set__(self, tup):
-            width, height = tup
-            glfwSetWindowSize(self._window, width, height)
-
-    property resizable:
-        def __get__(self):
-            return glfwGetWindowParam(self._window, GLFW_WINDOW_RESIZABLE)
-
-    property refresh_rate:
-        def __get__(self):
-            return glfwGetWindowParam(self._window, GLFW_REFRESH_RATE)
-
-    property vsync:
-        def __get__(self):
-            return self._vsync
-
-        def __set__(self, bint vsync):
-            glfwSwapInterval(vsync)
-            self._vsync = vsync
-
-    property mouse_cursor:
-        def __get__(self):
-            return bool(glfwGetInputMode(self._window, GLFW_CURSOR_MODE))
-
-        def __set__(self, mouse_cursor):
-            if mouse_cursor == "normal":
-                mode = GLFW_CURSOR_NORMAL
-            elif mouse_cursor == "hidden":
-                mode = GLFW_CURSOR_HIDDEN
-            elif mouse_cursor == "captured":
-                mode = GLFW_CURSOR_CAPTURED
-            else:
-                raise Exception("Unknown mouse_cursor value, possibilities are \"normal\", \"hidden\" and \"captured\".")
-
-            glfwSetInputMode(self._window, GLFW_CURSOR_MODE, mode)
-
-    property key_repeat:
-        def __get__(self):
-            return self._key_repeat
-
-        def __set__(self, bint key_repeat):
-            glfwSetInputMode(self._window, GLFW_KEY_REPEAT, key_repeat)
-
-            self._key_repeat = key_repeat
-
-    property title:
-        def __get__(self):
-            return self._title
-
-        def __set__(self, title):
-            self._title = title
-            glfwSetWindowTitle(self._window, title)
-
-    property fullscreen:
-        def __get__(self):
-            return self._fullscreen
-
-        def __set__(self, fullscreen):
-            if fullscreen != self._fullscreen:
-                width = self.width
-                height = self.height
-                refresh_rate = self.refresh_rate
-                title = self.title
-                vsync = self.vsync
-                resizable = self.resizable
-                key_repeat = self.key_repeat
-                mouse_cursor = self.mouse_cursor
-
-                rbits = glfwGetWindowParam(self._window, GLFW_RED_BITS)
-                gbits = glfwGetWindowParam(self._window, GLFW_GREEN_BITS)
-                bbits = glfwGetWindowParam(self._window, GLFW_BLUE_BITS)
-                abits = glfwGetWindowParam(self._window, GLFW_ALPHA_BITS)
-                bit_depth = (rbits, gbits, bbits, abits)
-
-                # clean up and close
-                self.close()
-
-                # re-open window
-                self.__init__(width, height, title, fullscreen, resizable, refresh_rate, vsync, bit_depth)
-                self.mouse_cursor = mouse_cursor
-                self.key_repeat = key_repeat
-
-    property position:
-        def __get__(self):
-            cdef int x, y
-            glfwGetWindowPos(self._window, &x, &y)
-
-            return x, y
-
-        def __set__(self, tup):
-            cdef int x, y
-            x, y = tup
-            glfwSetWindowPos(self._window, x, y)
-
-
-    def __cinit__(self):
-        self._closed = False
-        self._close_callback = None
-        self._resize_callback = None
-        self._refresh_callback = None
-        self._mouse_scroll_callback = None
-        self._mouse_move_callback = None
-
-        self._title = ""
-        self._mousewheel_pos = 0
-        self._frametime = 0.05
-        self._last_flip = timefunc()
 
     def __init__(self, int width = 0, int height = 0, title = "pygrafix window", bint fullscreen = False, bint resizable = False, int refresh_rate = 0, bint vsync = True, bit_depth = (8, 8, 8, 0)):
         cdef GLFWvidmode display
@@ -300,25 +168,39 @@ cdef class Window:
         if not glfwIsWindow(self._window):
             raise Exception("Failed to create window")
 
+        self._closed = False
+
         # make link from GLFW window to Python Window
         glfwSetWindowUserPointer(self._window, <void*> self)
 
         # set as current active
         self.switch_to()
 
-        self._fullscreen = fullscreen
-        self._closed = False
-
         # center window if we're not fullscreen
         if not fullscreen:
             glfwGetDesktopMode(&display)
-            self.set_position(display.width / 2 - width / 2, display.height / 2 - height / 2)
+            self.position = (display.width / 2 - width / 2, display.height / 2 - height / 2)
 
-        # set extra settings
-        self.mouse_cursor = True
+        # set extra settings and initial values
+        self.mouse_cursor = "normal"
         self.key_repeat = True
         self.vsync = vsync
         self.title = title
+        self._fullscreen = fullscreen
+        self._closed = False
+        self._mousewheel_pos = 0
+        self._frametime = 0.05
+        self._last_flip = timefunc()
+
+        # we start of without any callback handlers
+        self._close_callback = None
+        self._resize_callback = None
+        self._refresh_callback = None
+        self._mouse_scroll_callback = None
+        self._mouse_move_callback = None
+        self._key_press_callback = None
+        self._key_release_callback = None
+        self._text_callback = None
 
         # set up event handlers
         glfwSetWindowCloseCallback(&_close_callback_handler)
@@ -333,6 +215,8 @@ cdef class Window:
         _opened_windows = [win for win in _opened_windows if win()]
         _opened_windows.append(weakref.ref(self))
 
+        # initialize context
+        self.init_opengl()
         for func in _context_init_funcs:
             func()
 
@@ -438,6 +322,186 @@ cdef class Window:
 
     def __enter__(self):
         self.switch_to()
+
+        # special properties
+    property width:
+        def __get__(self):
+            return self.size[0]
+
+        def __set__(self, int width):
+            self.size = (width, self.height)
+
+    property height:
+        def __get__(self):
+            return self.size[1]
+
+        def __set__(self, int height):
+            self.size = (self.width, height)
+
+    property size:
+        def __get__(self):
+            cdef int w, h
+
+            w, h = -1, -1
+            glfwGetWindowSize(self._window, &w, &h)
+
+            if h == -1 or w == -1:
+                raise Exception("Error while retrieving size.")
+
+            return w, h
+
+        def __set__(self, tup):
+            width, height = tup
+            glfwSetWindowSize(self._window, width, height)
+
+    property resizable:
+        def __get__(self):
+            return glfwGetWindowParam(self._window, GLFW_WINDOW_RESIZABLE)
+
+    property refresh_rate:
+        def __get__(self):
+            return glfwGetWindowParam(self._window, GLFW_REFRESH_RATE)
+
+    property vsync:
+        def __get__(self):
+            return self._vsync
+
+        def __set__(self, bint vsync):
+            glfwSwapInterval(vsync)
+            self._vsync = vsync
+
+    property mouse_cursor:
+        def __get__(self):
+            return bool(glfwGetInputMode(self._window, GLFW_CURSOR_MODE))
+
+        def __set__(self, mouse_cursor):
+            if mouse_cursor == "normal":
+                mode = GLFW_CURSOR_NORMAL
+            elif mouse_cursor == "hidden":
+                mode = GLFW_CURSOR_HIDDEN
+            elif mouse_cursor == "captured":
+                mode = GLFW_CURSOR_CAPTURED
+            else:
+                raise Exception("Unknown mouse_cursor value, possibilities are \"normal\", \"hidden\" and \"captured\".")
+
+            glfwSetInputMode(self._window, GLFW_CURSOR_MODE, mode)
+
+    property key_repeat:
+        def __get__(self):
+            return self._key_repeat
+
+        def __set__(self, bint key_repeat):
+            glfwSetInputMode(self._window, GLFW_KEY_REPEAT, key_repeat)
+
+            self._key_repeat = key_repeat
+
+    property title:
+        def __get__(self):
+            return self._title
+
+        def __set__(self, title):
+            self._title = title
+            glfwSetWindowTitle(self._window, title)
+
+    property fullscreen:
+        def __get__(self):
+            return self._fullscreen
+
+        def __set__(self, fullscreen):
+            if fullscreen != self._fullscreen:
+                # save settings
+                width = self.width
+                height = self.height
+                refresh_rate = self.refresh_rate
+                title = self.title
+                vsync = self.vsync
+                resizable = self.resizable
+                key_repeat = self.key_repeat
+                mouse_cursor = self.mouse_cursor
+
+                rbits = glfwGetWindowParam(self._window, GLFW_RED_BITS)
+                gbits = glfwGetWindowParam(self._window, GLFW_GREEN_BITS)
+                bbits = glfwGetWindowParam(self._window, GLFW_BLUE_BITS)
+                abits = glfwGetWindowParam(self._window, GLFW_ALPHA_BITS)
+                bit_depth = (rbits, gbits, bbits, abits)
+
+                # save callbacks
+                close_callback = self._close_callback
+                resize_callback = self._resize_callback
+                refresh_callback = self._refresh_callback
+                mouse_scroll_callback = self._mouse_scroll_callback
+                mouse_move_callback = self._mouse_move_callback
+                key_press_callback = self._key_press_callback
+                key_release_callback = self._key_release_callback
+                text_callback = self._text_callback
+
+                # clean up and close
+                self.close()
+
+                # re-open window
+                self.__init__(width, height, title, fullscreen, resizable, refresh_rate, vsync, bit_depth)
+                self.mouse_cursor = mouse_cursor
+                self.key_repeat = key_repeat
+
+                # re-register callbacks
+                self.set_close_callback(close_callback)
+                self.set_resize_callback(resize_callback)
+                self.set_refresh_callback(refresh_callback)
+                self.set_mouse_scroll_callback(mouse_scroll_callback)
+                self.set_mouse_move_callback(mouse_move_callback)
+                self.set_key_press_callback(key_press_callback)
+                self.set_key_release_callback(key_release_callback)
+                self.set_text_callback(text_callback)
+
+    property position:
+        def __get__(self):
+            cdef int x, y
+            glfwGetWindowPos(self._window, &x, &y)
+
+            return x, y
+
+        def __set__(self, tup):
+            cdef int x, y
+            x, y = tup
+            glfwSetWindowPos(self._window, x, y)
+
+    cdef init_opengl(self):
+        # init glew
+        ret = glewInit()
+        if ret != GLEW_OK:
+            raise Exception("Error while initializing GLEW")
+
+        # set up 2d opengl
+        # disable depth testing and lighting, we won't use it
+        glDisable(GL_DEPTH_TEST)
+        glDisable(GL_LIGHTING)
+
+        # enable blending
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        
+        #glHint(GL_LINE_SMOOTH_HINT, GL_NICEST)
+        #glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST)
+
+        # make sure glColor is used
+        glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE)
+
+        # set up the correct viewport
+        width, height = self.size
+        glViewport(0, 0, width, height)
+
+        glMatrixMode(GL_PROJECTION)
+        glPushMatrix()
+        glLoadIdentity()
+
+        glOrtho(0.0, width, height, 0.0, 0.0, 1.0)
+
+        glMatrixMode(GL_MODELVIEW)
+        glPushMatrix()
+        glLoadIdentity()
+
+        # displacement trick for exact pixelization
+        glTranslatef(0.375, 0.375, 0.0)
 
 
 # and some free functions

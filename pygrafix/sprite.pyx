@@ -5,44 +5,13 @@ from libc.math cimport sin, cos, M_PI
 from pygrafix.c_headers.glew cimport *
 
 from pygrafix import window
-from pygrafix.window._window import _register_context_init_func
+from pygrafix.window._window import _context_init_funcs
 
 def _init_context():
     # init glew
     ret = glewInit()
     if ret != GLEW_OK:
         raise Exception("Error while initializing GLEW")
-
-    # set up 2d opengl
-    # disable depth testing and lighting, we won't use it
-    glDisable(GL_DEPTH_TEST)
-    glDisable(GL_LIGHTING)
-
-    # enable blending
-    glEnable(GL_BLEND)
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-    #glHint(GL_LINE_SMOOTH_HINT, GL_NICEST)
-    #glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST)
-
-    # make sure glColor is used
-    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE)
-
-    # set up the correct viewport
-    width, height = window.get_active_window().size
-    glViewport(0, 0, width, height)
-
-    glMatrixMode(GL_PROJECTION)
-    glPushMatrix()
-    glLoadIdentity()
-
-    glOrtho(0.0, width, height, 0.0, 0.0, 1.0)
-
-    glMatrixMode(GL_MODELVIEW)
-    glPushMatrix()
-    glLoadIdentity()
-
-    # displacement trick for exact pixelization
-    glTranslatef(0.375, 0.375, 0.0)
 
 cdef class Sprite:
     """Sprite(self, texture)
@@ -382,6 +351,6 @@ cdef _drawlist(list spritelist, int start_index, int end_index, image.InternalTe
 
     glDisable(texture.target)
 
-_register_context_init_func(_init_context)
+_context_init_funcs.append(_init_context)
 
 __all__ = ["Sprite", "draw_batch"]

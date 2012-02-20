@@ -8,7 +8,7 @@ _textures = []
 
 # this has to be a from module import ***, because pygrafix.image is not defined yet
 from pygrafix import window
-from pygrafix.window._window import _register_context_init_func
+from pygrafix.window._window import _context_init_funcs
 from pygrafix.image import codecs
 
 def get_next_pot(n):
@@ -201,7 +201,7 @@ def load(filename, file = None, decoder = None):
 
     raise error
 
-_register_context_init_func(_init_context)
+_context_init_funcs.append(_init_context)
 
 
 __all__ = ["load", "ImageData", "Texture"]
