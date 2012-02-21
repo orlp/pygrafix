@@ -8,7 +8,7 @@ from pygrafix.window import key
 window = pygrafix.window.Window(800, 600, title = "Test window", fullscreen = False, vsync = False)
 
 # load resources
-maptex = pygrafix.image.load("map.png").get_region(0, 300, 60, 160)
+maptex = pygrafix.image.load("map.png")
 
 map = pygrafix.sprite.Sprite(maptex)
 map.scale = 6

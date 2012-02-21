@@ -31,11 +31,11 @@ This module is used for loading images into a format pygrafix can understand.
 
     .. method:: copy([lazycopy])
 
-        Returns a copy of this texture. If *lazycopy* is True this function equals ``texture.get_texture_region(0, 0, texture.width, texture.height)``. *lazycopy* is False by default.
+        Returns a copy of this texture. If *lazycopy* is True this function equals ``texture.get_region(0, 0, texture.width, texture.height)``. *lazycopy* is False by default.
 
-    .. method:: get_texture_region([x[, y[, width[, height]]]])
+    .. method:: get_region([x[, y[, width[, height]]]])
 
-        Returns a :class:`Texture` object that represents a region of this texture, starting *(x, y)* pixels from the topleft of this texture, spanning *(width, height)* pixels. Any changes to the original texture will be represented in this region too, use ``texture.copy().get_texture_region(...)`` if that's undesired behaviour.
+        Returns a :class:`Texture` object that represents a region of this texture, starting *(x, y)* pixels from the topleft of this texture, spanning *(width, height)* pixels. Any changes to the original texture will be represented in this region too, use ``texture.copy().get_region(...)`` if that's undesired behaviour.
 
 .. class:: InternalTexture(imgdata)
 
@@ -52,4 +52,3 @@ This module is used for loading images into a format pygrafix can understand.
 .. class:: Imagedata(width, height, format, data)
 
     The format used to represent raw image data. *format* can be any of *"RGBA", "RGB", "LA", "A"*. Data must be :class:`bytes` data given in the format described. Only 8-bit channels are supported.
-

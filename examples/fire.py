@@ -11,7 +11,7 @@ window = pygrafix.window.Window(800, 600, fullscreen = False, vsync = False)
 window.set_mouse_cursor(False)
 
 # load resources
-particle = pygrafix.image.load("particles.png").get_texture_region(0, 0, 32, 32)
+particle = pygrafix.image.load("particles.png").get_region(0, 0, 32, 32)
 
 # create list of sprites for batching
 sprite_batch = []

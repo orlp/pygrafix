@@ -10,6 +10,7 @@ from pygrafix.window import key
 window = pygrafix.window.Window(800, 600, title = "Hares", fullscreen = False, vsync = False)
 
 # load resources
+pygrafix.resource.add_location("sprites.zip")
 haretex = pygrafix.image.load("hare.png")
 
 # create list of sprites used for batching

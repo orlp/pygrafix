@@ -1,3 +1,4 @@
+import pygrafix.resource
 import pygrafix.window
 import pygrafix.window.key
 import pygrafix.window.mouse

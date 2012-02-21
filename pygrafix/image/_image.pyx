@@ -7,6 +7,7 @@ _gl_textures = []
 _textures = []
 
 # this has to be a from module import ***, because pygrafix.image is not defined yet
+from pygrafix import resource
 from pygrafix import window
 from pygrafix.window._window import _context_init_funcs
 from pygrafix.image import codecs
@@ -49,6 +50,9 @@ cdef class ImageData:
         self.height = height
         self.format = format
         self.data = data
+
+    def copy(self):
+        return ImageData(width, height, format, data[:])
 
 cdef class InternalTexture:
     def __init__(self, imgdata):
@@ -159,7 +163,7 @@ cdef class Texture:
 
         return Texture(self, texture, self.region)
 
-    def get_texture_region(self, x, y, width, height):
+    def get_region(self, x, y, width, height):
         region = (self.region[0] + x, self.region[1] + y, width, height)
 
         return Texture(self.internal_texture, region)
@@ -183,7 +187,7 @@ def load(filename, file = None, decoder = None):
     """Loads an image from a file. If file is passed filename will be used as a hint for the filetype. Optionally you can specify a decoder argument which will be used for decoding the image."""
 
     if file == None:
-        file = open(filename, "rb")
+        file = resource.get_file(filename, "rb")
 
     # if an explicit decoder was specified we will only try that one
     if decoder:
