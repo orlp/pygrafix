@@ -52,7 +52,7 @@ cdef class ImageData:
         self.data = data
 
     def copy(self):
-        return ImageData(width, height, format, data[:])
+        return ImageData(self.width, self.height, self.format, self.data[:])
 
 cdef class InternalTexture:
     def __init__(self, imgdata):

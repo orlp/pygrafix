@@ -1,9 +1,9 @@
 import Image as PILImage
 
 from pygrafix.image import ImageData
-from pygrafix.image.codecs import ImageDecodeException, ImageDecoder
+from pygrafix.image.codecs import ImageDecodeException
 
-class PilImageDecoder(ImageDecoder):
+class PilImageDecoder:
     def get_extensions(self):
         return ["bmp", "cur", "gif", "ico", "jpg" , "jpeg", "pcx", "png", "tga", "tif", "tiff", "xbm", "xpm"]
 

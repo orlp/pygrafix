@@ -74,7 +74,7 @@ This module contains constants to be used with :mod:`pygrafix.window`.
     F24
     F25
 
-    F constants.
+    F-key constants.
 
 .. data::
     KP_0
