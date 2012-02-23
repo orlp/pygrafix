@@ -8,6 +8,10 @@ import sys
 import weakref
 import os
 
+# every function in this list gets called when the context gets created/destroyed (internal use only)
+_context_init_funcs = []
+_context_destroy_funcs = []
+
 if sys.platform == "win32":
     timefunc = time.clock
 else:
@@ -22,11 +26,6 @@ if not glfwInit():
     raise Exception("Couldn't initialize GLFW")
 
 os.chdir(_backup_cwd)
-
-
-# every function in this list gets called when the context gets created/destroyed (internal use only)
-_context_init_funcs = []
-_context_destroy_funcs = []
 
 # we keep track of our opened windows in this list (weakrefs)
 _opened_windows = []
@@ -122,7 +121,6 @@ cdef class Window:
 
     # internal, private variables
     cdef GLFWwindow _window
-    cdef bint _mouse_cursor
     cdef bint _key_repeat
     cdef bint _vsync
     cdef bint _fullscreen
@@ -314,6 +312,38 @@ cdef class Window:
         glClearColor(red, green, blue, 1.0)
         glClear(GL_COLOR_BUFFER_BIT)
 
+    def get_screen_data(self, position = (0, 0), size = None):
+        from pygrafix.image import ImageData
+
+        cdef unsigned char *c_pixel_data
+        cdef bytes pixel_data
+
+        if size is None:
+            size = (self.width - position[0], self.height - position[1])
+
+        if position[0] < 0 or position[1] < 0 or size[0] < 0 or size[1] < 0:
+            raise ValueError("Position and size may only have positive members")
+
+        if (position[0] + size[0]) > self.width or (position[1] + size[1]) > self.height:
+            raise ValueError("Area doesn't fit in the screen")
+
+        # get data from OpenGL
+        c_pixel_data = <unsigned char*> malloc(size[0] * size[1] * 3 * sizeof(unsigned char))
+        glReadPixels(position[0], position[1], size[0], size[1], GL_RGB, GL_UNSIGNED_BYTE, c_pixel_data)
+        pixel_data = c_pixel_data[:size[0] * size[1] * 3]
+        free(c_pixel_data)
+
+        # invert image
+        rows = [pixel_data[start_index:start_index + size[0] * 3] for start_index in range(0, size[0] * size[1] * 3, size[0] * 3)]
+        pixel_data = "".join(rows[::-1])
+
+        return ImageData(size[0], size[1], "RGB", pixel_data)
+
+    def save_screenshot(self, filename, file = None):
+        from pygrafix.image import write
+        write(self.get_screen_data(), filename, file)
+
+
     def get_fps(self):
         if self._frametime == 0:
             return 0.0
@@ -372,7 +402,14 @@ cdef class Window:
 
     property mouse_cursor:
         def __get__(self):
-            return bool(glfwGetInputMode(self._window, GLFW_CURSOR_MODE))
+            mouse_cursor = glfwGetInputMode(self._window, GLFW_CURSOR_MODE)
+
+            if mouse_cursor == GLFW_CURSOR_NORMAL:
+                return "normal"
+            elif mouse_cursor == GLFW_CURSOR_HIDDEN:
+                return "hidden"
+            elif mouse_cursor == GLFW_CURSOR_CAPTURED:
+                return "captured"
 
         def __set__(self, mouse_cursor):
             if mouse_cursor == "normal":
@@ -479,7 +516,7 @@ cdef class Window:
         # enable blending
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-        
+
         #glHint(GL_LINE_SMOOTH_HINT, GL_NICEST)
         #glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST)
 

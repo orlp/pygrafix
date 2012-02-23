@@ -46,6 +46,7 @@ def add_default_codecs():
     try:
         from pygrafix.image.codecs import stb_image
         add_decoder(stb_image.StbImageDecoder())
+        add_encoder(stb_image.StbImageEncoder())
     except ImportError:
         pass
 

@@ -1,7 +1,8 @@
 from pygrafix.c_headers.stb_image cimport *
+from pygrafix.c_headers.stb_image_write cimport *
 
 from pygrafix.image import ImageData
-from pygrafix.image.codecs import ImageDecodeException
+from pygrafix.image.codecs import ImageDecodeException, ImageEncodeException
 
 class StbImageDecoder:
     def get_extensions(self):
@@ -38,7 +39,38 @@ class StbImageDecoder:
 
 class StbImageEncoder:
     def get_extensions(self):
-        return ["bmp", "tga"]
+        return ["bmp", "tga", "png"]
 
-    def encode(self, filename):
-        pass
+    def encode(self, imgdata, file, filename):
+        cdef bytes output_data, input_data
+        cdef int output_len
+        cdef unsigned char* c_output_data
+        cdef unsigned char* c_input_data
+
+        input_data = imgdata.data
+        c_input_data = input_data
+
+        if len(imgdata.data) != imgdata.width * imgdata.height * len(imgdata.format):
+            raise ImageEncodeException("ImageData has invalid size")
+
+        if filename.endswith("bmp"):
+            if len(imgdata.format) > 3:
+                raise ImageEncodeException("BMP encoder doesn't support alpha-channel")
+
+            c_output_data = stbi_write_bmp_mem(imgdata.width, imgdata.height, len(imgdata.format), <void *> c_input_data, &output_len)
+
+        elif filename.endswith("tga"):
+            c_output_data = stbi_write_tga_mem(imgdata.width, imgdata.height, len(imgdata.format), <void *> c_input_data, &output_len)
+
+        elif filename.endswith("png"):
+            c_output_data = stbi_write_png_mem(imgdata.width, imgdata.height, len(imgdata.format), <void *> c_input_data, 0, &output_len)
+
+        else:
+            raise ImageEncodeException("Unknown file type")
+
+        if c_output_data == NULL:
+            raise ImageEncodeException("stb_image_write error")
+
+        output_data = c_output_data[:output_len]
+        file.write(output_data)
+

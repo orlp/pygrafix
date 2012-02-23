@@ -46,8 +46,8 @@ setup(
 
         Extension("pygrafix.window._window", ["pygrafix/window/_window.pyx"],
             include_dirs = ["pygrafix/c_headers"],
-            library_dirs = ["libs/glfw/build/src"],
-            libraries = ["glfw", glew_lib, opengl_lib],
+            libraries = [glew_lib, opengl_lib],
+            extra_objects = ["libs/glfw/build/src/libglfw.a"],
             extra_compile_args = ["-Wno-unused-but-set-variable", "-Wno-strict-aliasing", "-O2"],
             extra_link_args = ["-s"],
             depends = ["pygrafix/c_headers/glew.pxd", "pygrafix/c_headers/glfw.pxd"]
@@ -61,7 +61,7 @@ setup(
             depends = ["pygrafix/c_headers/glew.pxd", "pygrafix/image/_image.pxd"]
         ),
 
-        Extension("pygrafix.image.codecs.stb_image", ["libs/stb_image/stb_image.c", "pygrafix/image/codecs/stb_image.pyx"],
+        Extension("pygrafix.image.codecs.stb_image", ["libs/stb_image/stb_image.c", "libs/stb_image/stb_image_write.c", "pygrafix/image/codecs/stb_image.pyx"],
             include_dirs = ["pygrafix/c_headers"],
             libraries = [glew_lib, opengl_lib],
             extra_compile_args = ["-Wno-unused-but-set-variable", "-Wno-strict-aliasing", "-O2"],

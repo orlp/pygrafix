@@ -1,4 +1,4 @@
-cdef from "stb_image_include.h":
+cdef extern from "stb_image_write_include.h":
     ctypedef struct FILE # transparent struct
 
     int stbi_write_png(char *filename, int w, int h, int comp, void *data, int stride_in_bytes)

@@ -79,7 +79,11 @@ def main():
 
         # fullscreen?
         if window.is_key_pressed(key.F11):
-            window.toggle_fullscreen()
+            window.fullscreen = not window.fullscreen
+
+        if window.is_key_pressed(key.F12):
+            window.save_screenshot("test.png")
+            #window.get_screen_data()
 
         # time and fps
         dt = time.clock() - now

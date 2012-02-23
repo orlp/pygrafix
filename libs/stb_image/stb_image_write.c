@@ -177,7 +177,7 @@ unsigned char* stbi_write_bmp_mem(int w, int h, int comp, const void *data, int 
    
    if (!f) return NULL;
    
-   stbi_write_bmp_file(f, w, h, comp, data);
+   if (!stbi_write_bmp_file(f, w, h, comp, data)) return NULL;
    
    *len = ftell(f);
    fseek(f, 0L, SEEK_SET);
@@ -210,7 +210,7 @@ unsigned char* stbi_write_tga_mem(int w, int h, int comp, const void *data, int 
    
    if (!f) return NULL;
    
-   stbi_write_tga_file(f, w, h, comp, data);
+   if (!stbi_write_tga_file(f, w, h, comp, data)) return NULL;
    
    *len = ftell(f);
    fseek(f, 0L, SEEK_SET);

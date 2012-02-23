@@ -205,7 +205,32 @@ def load(filename, file = None, decoder = None):
 
     raise error
 
+def write(imgdata, filename, file = None, encoder = None):
+    if file == None:
+        file = open(filename, "wb")
+
+    # perhaps the user wants us to write half-way a file
+    startloc = file.tell()
+
+    # if an explicit encoder was specified we will only try that one
+    if encoder:
+        encoder.encode(imgdata, file, filename)
+        return
+
+    # otherwise encode it using all possible means
+    error = codecs.ImageEncodeException("No codecs found")
+    for encoder in codecs.get_encoders(filename):
+        try:
+            encoder.encode(imgdata, file, filename)
+            return
+        except codecs.ImageEncodeException as e:
+            error = e
+
+            # start over
+            file.seek(startloc)
+            file.truncate(startloc)
+
 _context_init_funcs.append(_init_context)
 
 
-__all__ = ["load", "ImageData", "Texture"]
+__all__ = ["load", "write", "ImageData", "Texture", "InternalTexture"]
