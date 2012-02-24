@@ -1,6 +1,8 @@
 :mod:`pygrafix.window` --- Managing windows
 ===========================================
 
+.. module:: pygrafix.window
+
 This module allows you to open and manage your windows to be used for pygrafix.
 
 .. class:: Window([width[, height[, title[, fullscreen[, resizable[, refresh_rate[, vsync[, bit_depth]]]]]]]])
@@ -11,17 +13,25 @@ This module allows you to open and manage your windows to be used for pygrafix.
 
     If no title is given the default title "pygrafix window" is chosen. The default value for *resizable* is False. If *refresh_rate* is zero (the default) the system's refresh rate will be used. The default value for *vsync* is True. If *bit_depth* is not given pygrafix will choose the best values.
 
+    pygrafix only supports double-buffered windows. This means that all drawing gets done on the back buffer and the user only ever sees the front-buffer. This is done to prevent half-done frames from showing up to the user. You swap the front and the back buffer by calling :meth:`flip`.
+
+    All attributes are read-write unless said otherwise.
+
     .. attribute:: width
 
-        The width of the screen in pixels. Read-write.
+        The width of the screen in pixels.
 
     .. attribute:: height
 
-        The height of the screen in pixels. Read-write.
+        The height of the screen in pixels.
 
     .. attribute:: size
 
-        The size of the window in the form *(width, height)*. Read-write.
+        The size of the window in the form *(width, height)*.
+
+    .. attribute:: position
+
+        The position of the window in the form *(x, y)*. *x* and *y* are measured in pixels relative to the topleft of the screen.
 
     .. attribute:: resizable
 
@@ -33,19 +43,23 @@ This module allows you to open and manage your windows to be used for pygrafix.
 
     .. attribute:: vsync
 
-        A boolean indicating whether vsync is enabled or not. Read-write.
+        A boolean indicating whether vsync is enabled or not.
 
     .. attribute:: mouse_cursor
 
-        A boolean indicating whether the mouse is enabled or disabled. Read-write.
+        Defines the cursor mode. Legal modes are *"normal"*, *"hidden"* and *"captured"*. In normal mode the regular hardware cursor is used and all mouse position functions work normally. In hidden mode everything is the same, except the cursor is not shown. Captured mode is radically different, the cursor is hidden and is not blocked by window boundaries. This last mode is commonly used for first-person-shooters.
+
+    .. attribute:: key_repeat
+
+        A boolean indicating whether key repeating is enabled or not.
 
     .. attribute:: title
 
-        The title of this window. Read-write.
+        The title of this window.
 
     .. attribute:: fullscreen
 
-        A boolean indicating whether the window is fullscreen or not. Read-only.
+        A boolean indicating whether the window is fullscreen or not.
 
     .. method:: close()
 
@@ -63,26 +77,6 @@ This module allows you to open and manage your windows to be used for pygrafix.
 
         Does the same as the :meth:`poll_events` but sleeps the process until an event is triggered.
 
-    .. method:: set_position(x, y)
-
-        Moves the window such that the topleft of the window is *(x, y)* pixels away from the topleft of the screen.
-
-    .. method:: set_size(width, height)
-
-        Sets the new window size in pixels.
-
-    .. method:: get_size()
-
-        Returns the size of the window in the form *(width, height)*.
-
-    .. method:: set_title(title)
-
-        Sets the title of the window
-
-    .. method:: toggle_fullscreen()
-
-        Switches to fullscreen if in windowed mode and vice versa.
-
     .. method:: minimize()
 
         Minimizes the window.
@@ -99,25 +93,13 @@ This module allows you to open and manage your windows to be used for pygrafix.
 
         Returns a boolean indicating if the window is minimized.
 
-    .. method:: flip()
-
-        This flips the window buffers and makes everything that has been drawn visible to the user. Call this once per frame.
-
     .. method:: switch_to()
 
         Makes this window the active window (the window that is drawn on).
 
-    .. method:: set_mouse_cursor(mouse_cursor)
+    .. method:: flip()
 
-        If *mouse_cursor* is True this will enable the hardware mouse cursor, else it will turn it off.
-
-    .. method:: set_key_repeat(key_repeat)
-
-        If *key_repeat* is True this will turn key repeating on, else off.
-
-    .. method:: set_vsync(vsync)
-
-        If *vsync* is True this will turn vsync on, else off.
+        This flips the front and the back and makes everything that has been drawn visible to the user. Call this once per frame.
 
     .. method:: get_mouse_position()
 
@@ -139,9 +121,17 @@ This module allows you to open and manage your windows to be used for pygrafix.
 
         Clears the whole screen to the given color.
 
+    .. method:: get_screen_data([position[, size[, buffer]]])
+
+        Returns an :class:`~pygrafix.image.ImageData` object containing the current contents of the screen. You can select a sub-part of the screen with *position* and *size*. Position must have the form *(x, y)* and size *(width, height)*. The optional argument *buffer* may be *"front"* or *"back"* and defaults to *"front"*. The front buffer is what the user currently sees, the back buffer is the buffer you do your drawing on.
+
+    .. method:: save_screenshot(filename[, file])
+
+        Saves a screenshot of this window into a file. If *file* is given *filename* will be used as a hint for the filetype.
+
     .. method:: get_fps()
 
-        Returns the frames per second as calculated from how often :meth:`flip` gets called.
+        Returns the frames per second. This value is calculated from how often :meth:`flip` gets called with an algorithm that slightly smoothes out FPS changes.
 
 
 

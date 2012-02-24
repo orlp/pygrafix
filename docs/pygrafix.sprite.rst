@@ -1,7 +1,7 @@
 :mod:`pygrafix.sprite` --- Fast sprites
 =======================================
 
-This module gives you fast sprites that can be moved, rotated, scaled and colored.
+.. module:: pygrafix.sprite
+    :synopsis: Fast sprite implementation.
 
-.. autoclass:: pygrafix.sprite.Sprite
-    :members:
+This module gives you fast sprites that can be moved, rotated, scaled and colored.

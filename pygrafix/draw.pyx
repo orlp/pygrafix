@@ -163,4 +163,25 @@ def polygon_outline(vertices, color = (1.0, 1.0, 1.0, 1.0), width = 1, edge_smoo
     free(color_arr)
     free(vertices_arr)
 
-__all__ = ["line", "polygon", "polygon_outline"]
+def rectangle(position, size, color = (1.0, 1.0, 1.0, 1.0), edge_smoothing = False, blending = "mix"):
+    topleft = (position[0], position[1])
+    topright = (position[0] + size[0], position[1])
+    bottomright = (position[0] + size[0], position[1] + size[1])
+    bottomleft = (position[0], position[1] + size[1])
+
+    polygon((topleft, topright, bottomright, bottomleft), color, edge_smoothing, blending)
+
+def rectangle_outline(position, size, color = (1.0, 1.0, 1.0, 1.0), width = 1, edge_smoothing = False, blending = "mix"):
+
+    size = (size[0] + width, size[1] + width)
+    position = (position[0] - width / 2.0, position[1] - width / 2.0)
+
+    topleft = (position[0], position[1])
+    topright = (position[0] + size[0], position[1])
+    bottomright = (position[0] + size[0], position[1] + size[1])
+    bottomleft = (position[0], position[1] + size[1])
+
+    polygon_outline((topleft, topright, bottomright, bottomleft), color, width, edge_smoothing, blending)
+
+
+__all__ = ["line", "polygon", "polygon_outline", "rectangle", "rectangle_outline"]

@@ -17,8 +17,8 @@ So download it from http://www.cython.org/ and build it from source (very easy).
 Now we need to compile pygrafix itself.
 
 First you need to compile GLFW 3. You do this by going into the libs/glfw directory
-and make a new directory "build". cd into the directory and call cmake on the above
-directory. After that you want to call make (BUT NOT make install)::
+and make a new directory "build". :command:`cd` into the directory and call :command:`cmake` on the above
+directory. After that you want to call :command:`make` (BUT NOT :command:`make install`)::
 
     $ mkdir libs/glfw/build
     $ cd libs/glfw/build

@@ -1,7 +1,10 @@
 :mod:`pygrafix.window.key` --- Key constants
 ============================================
 
-This module contains constants to be used with :mod:`pygrafix.window`.
+.. module:: pygrafix.window.key
+    :synopsis: Key constants for :mod:`pygrafix.window`.
+
+This module contains key constants that are used with :mod:`pygrafix.window`.
 
 .. data::
     _0
@@ -98,40 +101,58 @@ This module contains constants to be used with :mod:`pygrafix.window`.
     Keypad constants.
 
 .. data::
-    SPACE
-    APOSTROPHE
-    COMMA
-    MINUS
-    PERIOD
-    SLASH
-    SEMICOLON
-    EQUAL
-    LEFT_BRACKET
-    BACKSLASH
-    RIGHT_BRACKET
-    GRAVE_ACCENT
-    WORLD_1
-    WORLD_2
-    ESCAPE
-    ENTER
-    TAB
-    BACKSPACE
-    INSERT
-    DELETE
     RIGHT
     LEFT
     DOWN
     UP
+
+    Directional keys.
+
+.. data::
+    COMMA
+    PERIOD
+    SEMICOLON
+    SLASH
+    BACKSLASH
+    APOSTROPHE
+    GRAVE_ACCENT
+    LEFT_BRACKET
+    RIGHT_BRACKET
+    MINUS
+    EQUAL
+
+    Punctation and special symbol keys.
+
+.. data::
+    SPACE
+    ENTER
+    TAB
+
+    Whitespace keys.
+
+.. data::
+    CAPS_LOCK
+    SCROLL_LOCK
+    NUM_LOCK
+
+    Lock keys.
+
+.. data::
+    ESCAPE
+    BACKSPACE
+    INSERT
+    DELETE
     PAGE_UP
     PAGE_DOWN
     HOME
     END
-    CAPS_LOCK
-    SCROLL_LOCK
-    NUM_LOCK
     PRINT_SCREEN
     PAUSE
+    MENU
 
+    Miscellaneous keys.
+
+.. data::
     LEFT_SHIFT
     LEFT_CONTROL
     LEFT_ALT
@@ -140,4 +161,11 @@ This module contains constants to be used with :mod:`pygrafix.window`.
     RIGHT_CONTROL
     RIGHT_ALT
     RIGHT_SUPER
-    MENU
+
+    Modifier keys.
+
+.. data::
+    WORLD_1
+    WORLD_2
+
+    Non-US keys #1 and #2.

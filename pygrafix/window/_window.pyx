@@ -156,7 +156,7 @@ cdef class Window:
         glfwOpenWindowHint(GLFW_ACCUM_BLUE_BITS, 0)
         glfwOpenWindowHint(GLFW_ACCUM_ALPHA_BITS, 0)
         glfwOpenWindowHint(GLFW_AUX_BUFFERS, 0)
-        glfwOpenWindowHint(GLFW_FSAA_SAMPLES, 0)
+        glfwOpenWindowHint(GLFW_FSAA_SAMPLES, 4)
         glfwOpenWindowHint(GLFW_REFRESH_RATE, refresh_rate)
         glfwOpenWindowHint(GLFW_WINDOW_RESIZABLE, resizable)
 
@@ -177,7 +177,7 @@ cdef class Window:
         # center window if we're not fullscreen
         if not fullscreen:
             glfwGetDesktopMode(&display)
-            self.position = (display.width / 2 - width / 2, display.height / 2 - height / 2)
+            self.position = (display.width / 2 - self.width / 2, display.height / 2 - self.height / 2)
 
         # set extra settings and initial values
         self.mouse_cursor = "normal"
@@ -282,6 +282,58 @@ cdef class Window:
     def is_mouse_button_pressed(self, int button):
         return glfwGetMouseButton(self._window, button) == GLFW_PRESS
 
+    def clear(self, red = 0.0, green = 0.0, blue = 0.0):
+        glClearColor(red, green, blue, 1.0)
+        glClear(GL_COLOR_BUFFER_BIT)
+
+    def get_screen_data(self, position = (0, 0), size = None, buffer = "front"):
+        from pygrafix.image import ImageData
+
+        cdef unsigned char *c_pixel_data
+        cdef bytes pixel_data
+
+        old_window = get_active_window()
+        self.switch_to()
+
+        if buffer == "front":
+            glReadBuffer(GL_FRONT)
+        elif buffer = "back":
+            glReadBuffer(GL_BACK)
+        else:
+            raise Exception("Unknown buffer value: %s" % repr(buffer))
+
+        if size is None:
+            size = (self.width - position[0], self.height - position[1])
+
+        if position[0] < 0 or position[1] < 0 or size[0] < 0 or size[1] < 0:
+            raise ValueError("Position and size may only have positive members")
+
+        if (position[0] + size[0]) > self.width or (position[1] + size[1]) > self.height:
+            raise ValueError("Area doesn't fit in the screen")
+
+        # get data from OpenGL
+        c_pixel_data = <unsigned char*> malloc(size[0] * size[1] * 3 * sizeof(unsigned char))
+        glReadPixels(position[0], position[1], size[0], size[1], GL_RGB, GL_UNSIGNED_BYTE, c_pixel_data)
+        pixel_data = c_pixel_data[:size[0] * size[1] * 3]
+        free(c_pixel_data)
+
+        # invert image
+        rows = [pixel_data[start_index:start_index + size[0] * 3] for start_index in range(0, size[0] * size[1] * 3, size[0] * 3)]
+        pixel_data = "".join(rows[::-1])
+
+        return ImageData(size[0], size[1], "RGB", pixel_data)
+
+    def save_screenshot(self, filename, file = None):
+        from pygrafix.image import write
+        write(self.get_screen_data(buffer = "front"), filename, file)
+
+
+    def get_fps(self):
+        if self._frametime == 0:
+            return 0.0
+
+        return 1 / self._frametime
+
     # callbacks
     def set_close_callback(self, func):
         self._close_callback = func
@@ -308,52 +360,11 @@ cdef class Window:
     def set_text_callback(self, func):
         self._text_callback = func
 
-    def clear(self, red = 0.0, green = 0.0, blue = 0.0):
-        glClearColor(red, green, blue, 1.0)
-        glClear(GL_COLOR_BUFFER_BIT)
-
-    def get_screen_data(self, position = (0, 0), size = None):
-        from pygrafix.image import ImageData
-
-        cdef unsigned char *c_pixel_data
-        cdef bytes pixel_data
-
-        if size is None:
-            size = (self.width - position[0], self.height - position[1])
-
-        if position[0] < 0 or position[1] < 0 or size[0] < 0 or size[1] < 0:
-            raise ValueError("Position and size may only have positive members")
-
-        if (position[0] + size[0]) > self.width or (position[1] + size[1]) > self.height:
-            raise ValueError("Area doesn't fit in the screen")
-
-        # get data from OpenGL
-        c_pixel_data = <unsigned char*> malloc(size[0] * size[1] * 3 * sizeof(unsigned char))
-        glReadPixels(position[0], position[1], size[0], size[1], GL_RGB, GL_UNSIGNED_BYTE, c_pixel_data)
-        pixel_data = c_pixel_data[:size[0] * size[1] * 3]
-        free(c_pixel_data)
-
-        # invert image
-        rows = [pixel_data[start_index:start_index + size[0] * 3] for start_index in range(0, size[0] * size[1] * 3, size[0] * 3)]
-        pixel_data = "".join(rows[::-1])
-
-        return ImageData(size[0], size[1], "RGB", pixel_data)
-
-    def save_screenshot(self, filename, file = None):
-        from pygrafix.image import write
-        write(self.get_screen_data(), filename, file)
-
-
-    def get_fps(self):
-        if self._frametime == 0:
-            return 0.0
-
-        return 1 / self._frametime
-
+    # built-in methods
     def __enter__(self):
         self.switch_to()
 
-        # special properties
+    # special properties
     property width:
         def __get__(self):
             return self.size[0]
@@ -383,6 +394,18 @@ cdef class Window:
         def __set__(self, tup):
             width, height = tup
             glfwSetWindowSize(self._window, width, height)
+
+    property position:
+        def __get__(self):
+            cdef int x, y
+            glfwGetWindowPos(self._window, &x, &y)
+
+            return x, y
+
+        def __set__(self, tup):
+            cdef int x, y
+            x, y = tup
+            glfwSetWindowPos(self._window, x, y)
 
     property resizable:
         def __get__(self):
@@ -490,18 +513,6 @@ cdef class Window:
                 self.set_key_release_callback(key_release_callback)
                 self.set_text_callback(text_callback)
 
-    property position:
-        def __get__(self):
-            cdef int x, y
-            glfwGetWindowPos(self._window, &x, &y)
-
-            return x, y
-
-        def __set__(self, tup):
-            cdef int x, y
-            x, y = tup
-            glfwSetWindowPos(self._window, x, y)
-
     cdef init_opengl(self):
         # init glew
         ret = glewInit()
@@ -516,6 +527,8 @@ cdef class Window:
         # enable blending
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
+        glEnable(GL_MULTISAMPLE)
 
         #glHint(GL_LINE_SMOOTH_HINT, GL_NICEST)
         #glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST)

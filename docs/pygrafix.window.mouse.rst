@@ -1,7 +1,26 @@
 :mod:`pygrafix.window.mouse` --- Mouse constants
 ================================================
 
-This module contains constants to be used with :mod:`pygrafix.window`.
+.. module:: pygrafix.window.mouse
+    :synopsis: Mouse constants for :mod:`pygrafix.window`.
 
-.. automodule:: pygrafix.window.mouse
-    :members:
+This module contains mouse constants that are used with :mod:`pygrafix.window`.
+
+.. data::
+    LEFT
+    MIDDLE
+    RIGHT
+
+    Constants for respective the left, middle and right mouse button.
+
+.. data::
+    MOUSE1
+    MOUSE2
+    MOUSE3
+    MOUSE4
+    MOUSE5
+    MOUSE6
+    MOUSE7
+    MOUSE8
+
+    Constants for mouse button 1 through 8.

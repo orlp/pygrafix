@@ -2,19 +2,20 @@ from __future__ import division
 
 import time
 import pygrafix
+import math
 from pygrafix.window import key
 
 # open window and set up
-window = pygrafix.window.Window(800, 600, title = "Test window", fullscreen = False, vsync = False)
+window = pygrafix.window.Window(800, 600, title = "Test window", fullscreen = False)
+window.mouse_cursor = "hidden"
 
 # load resources
 maptex = pygrafix.image.load("map.png")
 
 map = pygrafix.sprite.Sprite(maptex)
 map.scale = 6
-
-map_x = 0
-map_y = 400
+map.x = 0
+map.y = -400
 
 # time tracking and FPS
 now = time.clock()
@@ -34,7 +35,7 @@ def main():
 
         # fullscreen?
         if window.is_key_pressed(key.F11):
-            window.toggle_fullscreen()
+            window.fullscreen = not window.fullscreen
 
         # time and fps
         dt = time.clock() - now
@@ -49,11 +50,10 @@ def main():
 
         # animation
         mouse_x, mouse_y = window.get_mouse_position()
-        map_x += 1000 * dt * (mouse_x - window.width / 2) / window.width
-        map_y += 1000 * dt * (mouse_y - window.height / 2) / window.height
-
-        map.x = -map_x
-        map.y = -map_y
+        mspeed_x, mspeed_y = float(mouse_x) / window.width - 0.5, float(mouse_y) / window.height - 0.5
+        
+        map.x -= math.copysign(2000.0, mspeed_x) * dt * (math.exp(abs(mspeed_x)) - 1)
+        map.y -= math.copysign(2000.0, mspeed_y) * dt * (math.exp(abs(mspeed_y)) - 1)
 
         window.clear()
         map.draw(scale_smoothing = False)

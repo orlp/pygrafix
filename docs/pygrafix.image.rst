@@ -2,6 +2,7 @@
 ==================================================
 
 .. module:: pygrafix.image
+    :synopsis: Functions and classes for loading and using images.
 
 This module is used for loading images into a format pygrafix can understand.
 
@@ -49,6 +50,6 @@ This module is used for loading images into a format pygrafix can understand.
 
         The height of the texture. Read-only.
 
-.. class:: Imagedata(width, height, format, data)
+.. class:: ImageData(width, height, format, data)
 
     The format used to represent raw image data. *format* can be any of *"RGBA", "RGB", "LA", "A"*. Data must be :class:`bytes` data given in the format described. Only 8-bit channels are supported.
