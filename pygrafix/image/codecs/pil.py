@@ -5,7 +5,7 @@ from pygrafix.image.codecs import ImageDecodeException
 
 class PilImageDecoder:
     def get_extensions(self):
-        return ["bmp", "cur", "gif", "ico", "jpg" , "jpeg", "pcx", "png", "tga", "tif", "tiff", "xbm", "xpm"]
+        return (".bmp", ".cur", ".gif", ".ico", ".jpg" , ".jpeg", ".pcx", ".png", ".tga", ".tif", ".tiff", ".xbm", ".xpm")
 
     def decode(self, file, filename):
         try:

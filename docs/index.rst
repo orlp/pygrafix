@@ -25,6 +25,7 @@ Modules:
     pygrafix.draw
     pygrafix.image
     pygrafix.image.codecs
+    pygrafix.resource
     pygrafix.sprite
     pygrafix.window
     pygrafix.window.key

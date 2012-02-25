@@ -59,7 +59,7 @@ def get_script_home():
             return os.path.dirname(main.__file__)
 
     # probably interactive
-    return ""
+    return os.getcwd()
 
 
 def get_settings_path(name):
@@ -78,15 +78,21 @@ def add_location(location):
     # zipfile?
     if os.path.isfile(location) and zipfile.is_zipfile(location):
         _resource_locations.append(ZipLocation(location))
-    # folder?
-    elif os.path.isdir(location):
-        _resource_locations.append(FolderLocation(location))
-    # ???
-    else:
-        raise Exception("Unknown location %s" % str(location))
+        return
 
-def add_custom_location(location):
-    _resource_locations.append(location)
+    # folder?
+    if os.path.isdir(location):
+        _resource_locations.append(FolderLocation(location))
+        return
+
+    # custom location?
+    try:
+        if callable(location.open) and callable(location.isfile) and callable(location.getpath):
+            _resource_locations.append(location)
+            return
+    except AttributeError: pass
+
+    raise Exception("Unknown location %s" % str(location))
 
 def get_path(resource):
     # we look for resources FIRST in the added resource paths, then in the working directory

@@ -20,10 +20,8 @@ def get_decoders(filename = None):
 
     available_decoders = []
 
-    extension = filename.rsplit(".", 1)[-1].lower()
-
     for decoder in _decoders:
-        if extension in decoder.get_extensions():
+        if any(filename.endswith(extension) for extension in decoder.get_extensions()):
             available_decoders.append(decoder)
 
     return available_decoders
@@ -34,15 +32,13 @@ def get_encoders(filename = None):
 
     available_encoders = []
 
-    extension = filename.rsplit(".", 1)[-1].lower()
-
     for encoder in _encoders:
-        if extension in encoder.get_extensions():
+        if any(filename.endswith(extension) for extension in decoder.get_extensions()):
             available_encoders.append(encoder)
 
     return available_encoders
 
-def add_default_codecs():
+def _add_default_codecs():
     try:
         from pygrafix.image.codecs import stb_image
         add_decoder(stb_image.StbImageDecoder())

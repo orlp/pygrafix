@@ -1,4 +1,4 @@
-:mod:`pygrafix` - General pygrafix functions
+:mod:`pygrafix` --- General pygrafix functions
 ============================================
 
 .. module:: pygrafix
@@ -8,4 +8,4 @@ This module is only there to group all the other modules, and for getting metada
 
 .. function:: get_version()
 
-    Returns the current pygrafix version in the format *(major, minor, revision)*.
+    Returns a tuple of three ints containing the current pygrafix version in the format *(major, minor, revision)*.

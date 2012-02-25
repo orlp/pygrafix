@@ -39,7 +39,7 @@ class StbImageDecoder:
 
 class StbImageEncoder:
     def get_extensions(self):
-        return ["bmp", "tga", "png"]
+        return (".bmp", ".tga", ".png")
 
     def encode(self, imgdata, file, filename):
         cdef bytes output_data, input_data
@@ -73,4 +73,3 @@ class StbImageEncoder:
 
         output_data = c_output_data[:output_len]
         file.write(output_data)
-
