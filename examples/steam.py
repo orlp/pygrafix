@@ -8,7 +8,7 @@ from pygrafix.window import key
 
 # open window and set up
 window = pygrafix.window.Window(800, 600, fullscreen = False, vsync = False)
-window.set_mouse_cursor(False)
+window.mouse_cursor = "hidden"
 
 # load resources
 particles = pygrafix.image.load("particles.png")

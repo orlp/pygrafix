@@ -1,5 +1,5 @@
 :mod:`pygrafix` --- General pygrafix functions
-============================================
+==============================================
 
 .. module:: pygrafix
     :synopsis: General pygrafix functions.

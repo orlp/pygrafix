@@ -9,14 +9,17 @@ from pygrafix.window import key
 WINDOW_HEIGHT = 400
 WINDOW_WIDTH = 300
 
+screen_center = tuple(x/2.0 for x in pygrafix.window.get_desktop_video_mode()[:2])
+
 # open window and set up
-windows = [pygrafix.window.Window(WINDOW_WIDTH, WINDOW_HEIGHT, title = "Snowflakes x3", fullscreen = False, vsync = False) for i in range(3)]
+windows = [pygrafix.window.Window(WINDOW_WIDTH, WINDOW_HEIGHT, title = "Snowflakes x3", fullscreen = False) for i in range(3)]
+windows[0].position = (screen_center[0] - WINDOW_WIDTH/2 - WINDOW_WIDTH - 50, screen_center[1] - WINDOW_HEIGHT/2)
+windows[1].position = (screen_center[0] - WINDOW_WIDTH/2, screen_center[1] - WINDOW_HEIGHT/2)
+windows[2].position = (screen_center[0] - WINDOW_WIDTH/2 + WINDOW_WIDTH + 50, screen_center[1] - WINDOW_HEIGHT/2)
+
 
 # load resources
 snowflaketex = pygrafix.image.load("snowflake.png")
-
-# create list of sprites for batching
-sprites_batch = []
 
 # snowflake object
 class Snowflake(object):
@@ -39,9 +42,6 @@ class Snowflake(object):
         self.dy = random.uniform(0, 200)
         self.drotation = random.uniform(0, 80)
 
-        # add sprite to batch
-        sprites_batch.append(self.sprite)
-
     def animate(self, dt):
         self.sprite.x += self.dx * dt
         self.sprite.y += self.dy * dt
@@ -57,7 +57,14 @@ class Snowflake(object):
             self.dscale = -self.dscale
 
 # create snowflakes
-snowflakes = [Snowflake() for _ in range(100)]
+snowflakes = {}
+for i, window in enumerate(windows):
+    snowflakes[i] = [Snowflake() for _ in range(100)]
+
+# create spritebatches
+spritebatches = {}
+for i, window in enumerate(windows):
+    spritebatches[i] = [snowflake.sprite for snowflake in snowflakes[i]]
 
 def main():
     # time tracking and FPS
@@ -75,7 +82,7 @@ def main():
             accum = 0.0
             for id, window in enumerate(windows):
                 if window.is_open():
-                    print("FPS of window %d: %f" % (id, window.get_fps()))
+                    window.title = "Window #%d - %d FPS" % (id, window.get_fps())
 
         # check if all windows are closed
         remaining = 0
@@ -88,8 +95,9 @@ def main():
             break
 
         # animate
-        for snowflake in snowflakes:
-            snowflake.animate(dt)
+        for i, window in enumerate(windows):
+            for snowflake in snowflakes[i]:
+                snowflake.animate(dt)
 
         for window_nr, window in enumerate(windows):
             if not window.is_open():
@@ -107,7 +115,7 @@ def main():
 
             # draw stuff
             window.clear()
-            pygrafix.sprite.draw_batch(sprites_batch)
+            pygrafix.sprite.draw_batch(spritebatches[window_nr])
             window.flip()
 
         time.sleep(0.000001)

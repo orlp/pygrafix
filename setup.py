@@ -2,7 +2,7 @@ from distutils.core import setup
 from distutils.extension import Extension
 from cython_dist import build_ext
 
-import sys, os, fnmatch
+import sys, os, fnmatch, shutil
 
 if sys.platform == "win32":
     opengl_lib = "opengl32"
@@ -81,3 +81,7 @@ if "clean" in sys.argv:
     for filename in matches:
         print("removing '%s'" % filename)
         os.remove(filename)
+
+    if os.path.isdir("docs/build"):
+        print("removing 'docs/build'")
+        shutil.rmtree("docs/build")

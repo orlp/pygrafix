@@ -91,7 +91,7 @@ def main():
         accum += dt
 
         if accum >= 1:
-            print(window.get_fps())
+            window.title = "%d FPS" % window.get_fps()
             accum -= 1
 
         for hare in hares:
