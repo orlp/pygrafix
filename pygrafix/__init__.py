@@ -7,7 +7,7 @@ import pygrafix.image.codecs
 import pygrafix.sprite
 import pygrafix.draw
 
-_version = (0, 0, 0)
+_version = (0, 0, 1)
 
 def get_version():
     """Returns the current pygrafix version in the format (major, minor, revision)."""

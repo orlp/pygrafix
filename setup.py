@@ -14,7 +14,7 @@ else:
 setup(
     name = "pygrafix",
     description = "pygrafix is a Python/Cython hardware-accelerated 2D graphics library.",
-    version = "0.0",
+    version = "0.0.1",
     author = "Orson Peters",
     author_email = "nightcracker@nclabs.org",
     url = "https://github.com/nightcracker/pygrafix",

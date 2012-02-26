@@ -16,9 +16,11 @@ So download it from http://www.cython.org/ and build it from source (very easy).
 
 Now we need to compile pygrafix itself.
 
-First you need to compile GLFW 3. You do this by going into the libs/glfw directory
-and make a new directory "build". :command:`cd` into the directory and call :command:`cmake` on the above
-directory. After that you want to call :command:`make` (BUT NOT :command:`make install`)::
+First you need to compile GLFW 3. GLFW 3 is currently an unstable branch of GLFW, so it's not
+in the repos. This also means that you shouldn't install it. In order to compile GLFW3
+you should go into the libs/glfw directory and make a new directory "build".
+:command:`cd` into the directory and call :command:`cmake` on the above directory. After that
+you want to call :command:`make` (BUT NOT :command:`make install`)::
 
     $ mkdir libs/glfw/build
     $ cd libs/glfw/build
@@ -39,7 +41,7 @@ done by installing MinGW through TDM-GCC (http://tdm-gcc.tdragon.net/). Make sur
 to get the 32-bit version, just like Python.
 
 You'll also need CMake, so get it from http://www.cmake.org/ (win32 installer).
-The same goes for Cython, get it from http://www.cython.org/ (win32 installer)
+The same goes for Cython, get it from http://www.cython.org/ (win32 installer).
 
 First we need to compile GLFW::
 

@@ -297,7 +297,7 @@ cdef class Window:
 
         if buffer == "front":
             glReadBuffer(GL_FRONT)
-        elif buffer = "back":
+        elif buffer == "back":
             glReadBuffer(GL_BACK)
         else:
             raise Exception("Unknown buffer value: %s" % repr(buffer))

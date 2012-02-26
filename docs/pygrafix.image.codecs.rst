@@ -39,7 +39,7 @@ This module is used for managing codecs to be used by pygrafix. pygrafix support
 
     Adds *encoder* to pygrafix. An encoder must support two methods: ``get_extensions()`` and ``encode(imgdata, file, filename)``.
 
-    ``get_extensions()`` must return an iterable of extensions the encoder can encode, for example:
+    ``get_extensions()`` must return an iterable of extensions the encoder can encode, for example::
 
         def get_extensions(self):
             return (".bmp", ".png")

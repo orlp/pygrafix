@@ -49,6 +49,10 @@ cdef class Sprite:
         def __get__(self):
             return self.texture.height
 
+    property size:
+        def __get__(self):
+            return (self.width, self.height)
+
     def __init__(self, texture):
         self.texture = texture
 
