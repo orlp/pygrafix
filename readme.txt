@@ -46,6 +46,11 @@ What other features might get added?
  - Loading and playing back sound
  - (2D) game specific high-performance modules (collision, vector, quaternion, etc)
 
+Downloads
+---------
+
+The latest version, compiled for windows can be found here: https://github.com/nightcracker/pygrafix/downloads
+
 Compiling on Linux
 ------------------
 First you need to install the required software if you don't have it yet. If you
