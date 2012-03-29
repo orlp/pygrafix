@@ -42,6 +42,10 @@ This module gives you fast sprites that can be moved, rotated, scaled and colore
 
         The anchor of a sprite is used to determine how to place a sprite, even when scaled and rotated. The anchor of a sprite also rotates and scales with the sprite. Finally when a sprite is rendered pygrafix makes sure that the anchor point of the sprite always lies on the sprites' *position*.
 
+    .. attribute:: rotation
+
+        The rotation of the sprite. The sprite will be rotated around the anchor.
+
     .. attribute:: width
 
         Shorthand for ``sprite.texture.width``. Read-only.
