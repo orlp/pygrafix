@@ -1,5 +1,4 @@
-#Outdated
-##This project is abandoned, my suggestion is to use the Allegro game library instead - it's very high quality.
+###This project is abandoned, my suggestion is to use the Allegro game library instead - it's very high quality.
 
 pygrafix is a Python/Cython hardware-accelerated 2D graphics library.
 
